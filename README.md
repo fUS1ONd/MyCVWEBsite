@@ -79,12 +79,116 @@ make frontend-dev
 cd frontend && npm run dev
 ```
 
+## 🔍 Code Quality & Linting
+
+Проект настроен с автоматическими проверками качества кода на двух уровнях:
+
+### Pre-commit hooks (локальная проверка)
+
+Pre-commit hooks автоматически запускаются перед каждым коммитом и проверяют код.
+
+**Что проверяется:**
+- **Backend:** `go fmt`, `go vet`, `go mod tidy`
+- **Frontend:** `prettier`, `eslint --fix`
+- **Общее:** trailing whitespace, большие файлы, merge конфликты
+
+**Установка pre-commit (выберите один способ):**
+
+**Вариант 1: Через системный менеджер пакетов (рекомендуется)**
+```bash
+# Ubuntu/Debian
+sudo apt install pre-commit
+
+# macOS
+brew install pre-commit
+
+# Arch Linux
+sudo pacman -S pre-commit
+```
+
+**Вариант 2: Через pip (глобально, без виртуального окружения)**
+```bash
+pip install pre-commit
+# или
+pip3 install --user pre-commit
+```
+
+**Вариант 3: Через pipx (изолированная установка CLI инструментов)**
+```bash
+# Установить pipx если его нет
+pip install --user pipx
+pipx ensurepath
+
+# Установить pre-commit через pipx
+pipx install pre-commit
+```
+
+**Активация hooks в проекте:**
+```bash
+# После установки pre-commit любым способом
+cd /path/to/curriculum_vitae
+pre-commit install
+
+# Теперь hooks запускаются автоматически при git commit!
+```
+
+**Ручной запуск:**
+```bash
+# Запустить на всех файлах
+pre-commit run --all-files
+
+# Запустить на staged файлах
+pre-commit run
+```
+
+### Линтеры
+
+**Backend (golangci-lint):**
+```bash
+cd backend
+golangci-lint run
+
+# Конфигурация: backend/.golangci.yml
+# Включено 20+ линтеров: gosec, errcheck, govet, revive, и другие
+```
+
+**Frontend (ESLint + Prettier):**
+```bash
+cd frontend
+
+# Проверка кода
+npm run lint              # ESLint
+npm run format:check      # Prettier check
+
+# Автоматическое исправление
+npm run lint:fix          # ESLint --fix
+npm run format            # Prettier --write
+```
+
+### CI/CD (GitHub Actions)
+
+Автоматические проверки запускаются на GitHub при:
+- Push в `main` или `develop`
+- Создании Pull Request
+
+**Backend CI** (`.github/workflows/backend.yml`):
+- ✅ Lint (go fmt, go vet, golangci-lint)
+- ✅ Test (с PostgreSQL, race detector, coverage 70%+)
+- ✅ Build
+
+**Frontend CI** (`.github/workflows/frontend.yml`):
+- ✅ Lint (prettier, eslint)
+- ✅ Type Check (TypeScript)
+- ✅ Test (когда будут реализованы)
+- ✅ Build
+
 ## 📝 Доступные команды
 
 ### Общие команды
 ```bash
 make build              # Собрать backend и frontend
 make test               # Запустить все тесты
+make lint               # Запустить все линтеры
 make clean              # Очистить build артефакты
 ```
 
@@ -93,7 +197,7 @@ make clean              # Очистить build артефакты
 make backend-build      # Собрать backend в bin/
 make backend-run        # Запустить backend локально
 make backend-test       # Запустить backend тесты
-make backend-lint       # Запустить Go linter
+make backend-lint       # Запустить golangci-lint
 ```
 
 ### Frontend команды
@@ -101,6 +205,7 @@ make backend-lint       # Запустить Go linter
 make frontend-install   # Установить npm зависимости
 make frontend-dev       # Запустить dev server
 make frontend-build     # Собрать production build
+make frontend-lint      # Запустить ESLint и Prettier проверки
 ```
 
 ### Docker команды
@@ -211,7 +316,13 @@ cd frontend && npm test
 
 См. [план разработки](./plan.md) для детального roadmap с 13 этапами разработки.
 
-**Текущий этап:** Этап 1 - Инфраструктура и базовая настройка
+**Текущий этап:** Этап 1 - Инфраструктура и базовая настройка (9/11 задач завершено - 81%)
+
+**Недавно завершено:**
+- ✅ Pre-commit hooks для автоматической проверки кода
+- ✅ Конфигурация golangci-lint для backend
+- ✅ Конфигурация ESLint и Prettier для frontend
+- ✅ CI/CD workflows (GitHub Actions)
 
 ## 📄 Лицензия
 

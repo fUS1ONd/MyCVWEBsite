@@ -1,4 +1,4 @@
-.PHONY: build run test lint docker-up docker-down clean backend-build backend-run backend-test frontend-install frontend-dev
+.PHONY: build run test lint format docker-up docker-down clean backend-build backend-run backend-test backend-lint frontend-install frontend-dev frontend-build frontend-lint frontend-format
 
 APP_NAME=personal-web-platform
 BACKEND_DIR=backend
@@ -28,6 +28,12 @@ frontend-dev:
 frontend-build:
 	cd $(FRONTEND_DIR) && npm run build
 
+frontend-lint:
+	cd $(FRONTEND_DIR) && npm run lint && npm run format:check
+
+frontend-format:
+	cd $(FRONTEND_DIR) && npm run format
+
 # Docker commands
 docker-up:
 	docker-compose up -d --build
@@ -42,7 +48,9 @@ run: backend-run
 
 test: backend-test
 
-lint: backend-lint
+lint: backend-lint frontend-lint
+
+format: frontend-format
 
 clean:
 	rm -rf bin/
