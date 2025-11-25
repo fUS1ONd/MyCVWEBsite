@@ -141,5 +141,152 @@
 
 ---
 
+## 5. Правила разработки (Development Guidelines)
+
+### 5.1. Языковые соглашения (Language Conventions)
+
+#### Код (Code)
+- **Комментарии в коде**: Только английский язык
+- **Названия переменных, функций, классов**: Английский язык
+- **Документация в коде (JSDoc, GoDoc)**: Английский язык
+
+```go
+// ✅ Правильно (Correct)
+// GetUserByID retrieves user from database by their ID
+func GetUserByID(id int) (*User, error) {
+    // Query database for user
+    return db.QueryUser(id)
+}
+
+// ❌ Неправильно (Incorrect)
+// Получить пользователя по ID
+func GetUserByID(id int) (*User, error) {
+    // Запрос в базу данных
+    return db.QueryUser(id)
+}
+```
+
+#### Коммуникация (Communication)
+- **Объяснения для разработчика**: Русский язык
+- **Сообщения об ошибках для пользователя**: Русский язык (где применимо)
+- **Документация (README, план)**: Русский язык
+
+### 5.2. Git коммиты (Git Commits)
+
+#### Формат коммита
+```
+<type>: <subject>
+
+<body (optional)>
+```
+
+#### Правила (Rules)
+1. **Язык**: Только английский
+2. **Тип коммита** (обязательно):
+   - `feat`: Новая функциональность
+   - `fix`: Исправление бага
+   - `refactor`: Рефакторинг кода
+   - `docs`: Изменения в документации
+   - `style`: Форматирование, отсутствие изменений в коде
+   - `test`: Добавление или исправление тестов
+   - `chore`: Обновление зависимостей, конфигурации
+
+3. **Subject (заголовок)**:
+   - Начинается с маленькой буквы
+   - Без точки в конце
+   - Максимум 72 символа
+   - Описывает ЧТО было сделано
+
+4. **Body (тело)** (опционально):
+   - Детальное описание изменений
+   - Разделено пустой строкой от subject
+   - Может содержать списки, подразделы
+
+5. **НЕ ДОБАВЛЯТЬ**:
+   - ❌ `🤖 Generated with [Claude Code](...)`
+   - ❌ `Co-Authored-By: Claude <...>`
+   - ❌ Любые другие attribution строки
+
+#### Примеры хороших коммитов
+
+```bash
+# Простой коммит
+feat: add user authentication with OAuth providers
+
+# Коммит с подробным описанием
+refactor: reorganize project structure into monorepo
+
+Major changes:
+- Split project into backend/ and frontend/ directories
+- Move all Go code to backend/ with existing architecture
+- Initialize React + TypeScript project in frontend/
+
+Infrastructure:
+- Create Makefile with build commands
+- Update docker-compose.yml for both services
+
+Dependencies:
+- Backend: add goth, validator, testify
+- Frontend: React 19, Tailwind CSS 4, Vite
+
+Stage 1 (Infrastructure) partially completed: 6/12 tasks done
+```
+
+#### Примеры плохих коммитов
+
+```bash
+# ❌ Слишком общее
+fix: fixes
+
+# ❌ На русском языке
+feat: Добавил аутентификацию
+
+# ❌ С attribution строками
+feat: add authentication
+
+🤖 Generated with [Claude Code](...)
+Co-Authored-By: Claude <...>
+
+# ❌ Заголовок с большой буквы и точкой
+Feat: Add authentication.
+```
+
+### 5.3. Структура проекта (Project Structure)
+
+Проект организован как **монорепозиторий** (monorepo):
+
+```
+curriculum_vitae/
+├── backend/          # Go backend application
+│   ├── cmd/         # Application entry points
+│   ├── internal/    # Private application code
+│   ├── config/      # Configuration files
+│   └── migrations/  # Database migrations
+├── frontend/         # React frontend application
+│   ├── src/         # Source code
+│   ├── public/      # Static assets
+│   └── package.json
+├── docker-compose.yml
+├── Makefile
+├── plan.md          # Development roadmap
+└── CLAUDE.md        # This file
+```
+
+### 5.4. Стиль кода (Code Style)
+
+#### Backend (Go)
+- Следовать [Effective Go](https://golang.org/doc/effective_go.html)
+- Использовать `gofmt` и `golangci-lint`
+- Комментарии на английском
+
+#### Frontend (TypeScript/React)
+- Следовать [TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html)
+- Использовать ESLint и Prettier
+- Комментарии на английском
+- Функциональные компоненты + hooks
+
+---
+
 **Дата создания ТЗ:** 2025-11-24
-**Версия:** 1.0
+**Дата последнего обновления:** 2025-11-25
+**Версия:** 1.1
