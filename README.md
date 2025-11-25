@@ -280,6 +280,39 @@ CONFIG_PATH=backend/config/local.yaml
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/pwp_db?sslmode=disable
 ```
 
+## 🔧 Troubleshooting
+
+### Pre-commit hooks ошибка с nodeenv
+
+**Проблема:** `IndexError: list index out of range` при запуске pre-commit
+
+**Решение:** Используйте локальные hooks вместо mirrors. Конфигурация в проекте уже обновлена для использования локальных node_modules.
+
+### golangci-lint не найден
+
+**Проблема:** `golangci-lint: not found` при запуске `make lint`
+
+**Решение:** Установите golangci-lint:
+```bash
+# Через go install (рекомендуется)
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Добавьте в PATH (если еще нет)
+export PATH=$PATH:$(go env GOPATH)/bin
+
+# Или добавьте в ~/.bashrc или ~/.zshrc
+echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.bashrc
+```
+
+### Go version несовместимость
+
+**Проблема:** Ошибки при установке golangci-lint с Go 1.25
+
+**Решение:** Используйте `@latest` вместо конкретной версии:
+```bash
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+```
+
 ## 🧪 Тестирование
 
 ```bash
