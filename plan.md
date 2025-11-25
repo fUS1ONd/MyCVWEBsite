@@ -74,15 +74,15 @@
 
 **Список задач:**
 
-- [ ] Настроить Makefile с командами (build, test, lint, migrate, docker-up, docker-down)
-- [ ] Добавить .gitignore для Go и Node.js проектов
-- [ ] Настроить Go modules и добавить необходимые зависимости (chi, pgx, goth, validator, testify)
-- [ ] Создать структуру директорий для frontend (web/ с src/, public/, components/)
-- [ ] Инициализировать React проект с Vite и TypeScript
-- [ ] Настроить Tailwind CSS в frontend проекте
+- [x] Настроить Makefile с командами (build, test, lint, migrate, docker-up, docker-down)
+- [x] Добавить .gitignore для Go и Node.js проектов
+- [x] Настроить Go modules и добавить необходимые зависимости (chi, pgx, goth, validator, testify)
+- [x] Создать структуру директорий для frontend (монорепозиторий: backend/ и frontend/)
+- [x] Инициализировать React проект с Vite и TypeScript
+- [x] Настроить Tailwind CSS в frontend проекте
 - [ ] Добавить pre-commit хуки (go fmt, go vet, eslint, prettier)
 - [ ] Настроить ESLint и Prettier для TypeScript/React
-- [ ] Создать README.md с инструкциями по запуску и разработке
+- [x] Создать README.md с инструкциями по запуску и разработке
 - [ ] Настроить golangci-lint с конфигурацией
 - [ ] Обновить docker-compose.yml для разработки (hot reload для Go и React)
 - [ ] Добавить healthcheck endpoints (/health, /ready)

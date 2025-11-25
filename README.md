@@ -1,0 +1,227 @@
+# Personal Web Platform (CV + AI Blog)
+
+Персональный веб-сайт с публичной CV-страницей и AI блогом для авторизованных пользователей.
+
+## 🏗 Архитектура
+
+Проект организован как **монорепозиторий**:
+
+```
+curriculum_vitae/
+├── backend/          # Go API сервер
+├── frontend/         # React SPA приложение
+├── docker-compose.yml
+├── Makefile
+└── plan.md           # Детальный план разработки
+```
+
+## 🛠 Технологический стек
+
+### Backend
+- **Go** 1.22+ с Chi router
+- **PostgreSQL** 15 (база данных)
+- **pgx/v5** (PostgreSQL драйвер)
+- **goth** (OAuth аутентификация: VK, Google, GitHub)
+- **Clean Architecture** (domain, repository, service, transport layers)
+
+### Frontend
+- **React** 18+ с TypeScript
+- **Vite** (build tool)
+- **Tailwind CSS** (стилизация)
+- **React Router** (навигация)
+- **React Query** (state management)
+
+### Infrastructure
+- **Docker** + Docker Compose
+- **Nginx** (reverse proxy для production)
+- **Let's Encrypt** (SSL сертификаты)
+
+## 🚀 Быстрый старт
+
+### Предварительные требования
+
+- Go 1.22+
+- Node.js 20+
+- Docker и Docker Compose
+- Make
+
+### Установка и запуск
+
+1. **Клонировать репозиторий:**
+```bash
+git clone <repository-url>
+cd curriculum_vitae
+```
+
+2. **Запустить все сервисы с Docker Compose:**
+```bash
+make docker-up
+```
+
+Это запустит:
+- Backend API на http://localhost:8080
+- Frontend dev server на http://localhost:5173
+- PostgreSQL на localhost:5432
+
+3. **Или запустить локально без Docker:**
+
+**Backend:**
+```bash
+make backend-run
+# или
+cd backend && go run cmd/app/main.go
+```
+
+**Frontend:**
+```bash
+make frontend-dev
+# или
+cd frontend && npm run dev
+```
+
+## 📝 Доступные команды
+
+### Общие команды
+```bash
+make build              # Собрать backend и frontend
+make test               # Запустить все тесты
+make clean              # Очистить build артефакты
+```
+
+### Backend команды
+```bash
+make backend-build      # Собрать backend в bin/
+make backend-run        # Запустить backend локально
+make backend-test       # Запустить backend тесты
+make backend-lint       # Запустить Go linter
+```
+
+### Frontend команды
+```bash
+make frontend-install   # Установить npm зависимости
+make frontend-dev       # Запустить dev server
+make frontend-build     # Собрать production build
+```
+
+### Docker команды
+```bash
+make docker-up          # Поднять все сервисы
+make docker-down        # Остановить все сервисы
+```
+
+## 🏗 Структура проекта
+
+### Backend
+```
+backend/
+├── cmd/
+│   └── app/
+│       └── main.go          # Точка входа
+├── internal/
+│   ├── domain/              # Domain модели
+│   ├── repository/          # Работа с БД
+│   ├── service/             # Бизнес-логика
+│   ├── transport/http/      # HTTP handlers
+│   └── pkg/                 # Общие утилиты
+├── config/                  # Конфигурация
+├── migrations/              # SQL миграции
+└── go.mod
+```
+
+### Frontend
+```
+frontend/
+├── src/
+│   ├── components/          # React компоненты
+│   ├── pages/               # Страницы
+│   ├── hooks/               # Custom hooks
+│   ├── services/            # API клиенты
+│   ├── types/               # TypeScript типы
+│   └── utils/               # Утилиты
+├── public/                  # Статические файлы
+└── package.json
+```
+
+## 🔧 Конфигурация
+
+### Backend конфигурация
+
+Создайте файл `backend/config/local.yaml` для локальной разработки:
+
+```yaml
+env: "local"
+http_server:
+  address: "0.0.0.0:8080"
+  timeout: "4s"
+  idle_timeout: "60s"
+database:
+  url: "postgres://postgres:postgres@localhost:5432/pwp_db?sslmode=disable"
+profile:
+  name: "Your Name"
+  description: "Your description"
+  photo_url: "/static/photo.jpg"
+  activity: "Your activity"
+  contacts:
+    email: "your@email.com"
+    github: "yourusername"
+    linkedin: "yourprofile"
+```
+
+### Environment Variables
+
+Создайте файл `.env` в корне проекта:
+```bash
+CONFIG_PATH=backend/config/local.yaml
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/pwp_db?sslmode=disable
+```
+
+## 🧪 Тестирование
+
+```bash
+# Backend тесты
+cd backend && go test -v -cover ./...
+
+# Frontend тесты (когда будут реализованы)
+cd frontend && npm test
+```
+
+## 📚 Дополнительная документация
+
+- [Backend README](./backend/README.md) - детальная документация по backend
+- [План разработки](./plan.md) - пошаговый план с чекбоксами
+
+## 🎯 Основные функции
+
+### Для неавторизованных пользователей
+- ✅ Публичная CV-страница с информацией о навыках и контактах
+
+### Для авторизованных пользователей
+- 🔐 OAuth авторизация (VK, Google, GitHub)
+- 📝 Просмотр постов об AI
+- 💬 Комментирование постов
+- 🔔 Уведомления о новых постах (email/push)
+
+### Для администратора
+- ✏️ Создание и редактирование постов
+- 📷 Загрузка изображений и видео
+- 🗑️ Модерация комментариев
+- 📊 Просмотр аналитики
+
+## 🛣 Roadmap
+
+См. [план разработки](./plan.md) для детального roadmap с 13 этапами разработки.
+
+**Текущий этап:** Этап 1 - Инфраструктура и базовая настройка
+
+## 📄 Лицензия
+
+MIT
+
+## 👤 Автор
+
+[Ваше имя]
+
+---
+
+**Дата создания:** 2025-11-25
+**Версия:** 1.0
