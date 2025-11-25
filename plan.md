@@ -80,10 +80,11 @@
 - [x] Создать структуру директорий для frontend (монорепозиторий: backend/ и frontend/)
 - [x] Инициализировать React проект с Vite и TypeScript
 - [x] Настроить Tailwind CSS в frontend проекте
-- [ ] Добавить pre-commit хуки (go fmt, go vet, eslint, prettier)
-- [ ] Настроить ESLint и Prettier для TypeScript/React
+- [x] Добавить pre-commit хуки (go fmt, go vet, eslint, prettier)
+- [x] Настроить ESLint и Prettier для TypeScript/React
 - [x] Создать README.md с инструкциями по запуску и разработке
-- [ ] Настроить golangci-lint с конфигурацией
+- [x] Настроить golangci-lint с конфигурацией
+- [x] Настроить CI/CD (GitHub Actions для backend и frontend)
 - [ ] Обновить docker-compose.yml для разработки (hot reload для Go и React)
 - [ ] Добавить healthcheck endpoints (/health, /ready)
 
