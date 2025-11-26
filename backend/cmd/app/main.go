@@ -12,6 +12,7 @@ import (
 
 	"personal-web-platform/config"
 	"personal-web-platform/internal/pkg/logger"
+	"personal-web-platform/internal/pkg/oauth"
 	"personal-web-platform/internal/repository"
 	"personal-web-platform/internal/service"
 	transport "personal-web-platform/internal/transport/http"
@@ -32,11 +33,18 @@ func main() {
 	defer db.Close()
 	log.Info("connected to database")
 
+	// Initialize OAuth providers
+	oauth.InitProviders(cfg)
+	log.Info("oauth providers initialized")
+
 	// Layers initialization
-	// Note: For Stage 1, we use config-based profile repository
 	repo := repository.NewRepositories(db, cfg)
-	services := service.NewServices(repo)
-	handlers := transport.NewHandler(services, log)
+	services := service.NewServices(repo, cfg)
+	handlers := transport.NewHandler(services, log, cfg)
+
+	// Start background session cleanup
+	go startSessionCleanup(log, repo.Session)
+	log.Info("session cleanup started")
 
 	// HTTP Server
 	srv := &http.Server{
@@ -69,4 +77,21 @@ func main() {
 		log.Error("failed to shutdown server", slog.String("error", err.Error()))
 	}
 	log.Info("server stopped")
+}
+
+// startSessionCleanup runs periodic cleanup of expired sessions
+func startSessionCleanup(log *slog.Logger, sessionRepo repository.SessionRepository) {
+	ticker := time.NewTicker(1 * time.Hour)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		deleted, err := sessionRepo.CleanupExpiredSessions(ctx)
+		if err != nil {
+			log.Error("failed to cleanup expired sessions", slog.String("error", err.Error()))
+		} else if deleted > 0 {
+			log.Info("cleaned up expired sessions", slog.Int64("count", deleted))
+		}
+		cancel()
+	}
 }

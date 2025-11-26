@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"personal-web-platform/config"
 	"personal-web-platform/internal/service"
 
 	"github.com/go-chi/chi/v5"
@@ -15,13 +16,15 @@ import (
 type Handler struct {
 	services *service.Services
 	log      *slog.Logger
+	cfg      *config.Config
 }
 
 // NewHandler creates a new HTTP handler
-func NewHandler(services *service.Services, log *slog.Logger) *Handler {
+func NewHandler(services *service.Services, log *slog.Logger, cfg *config.Config) *Handler {
 	return &Handler{
 		services: services,
 		log:      log,
+		cfg:      cfg,
 	}
 }
 
@@ -37,6 +40,19 @@ func (h *Handler) InitRoutes() http.Handler {
 	// Health checks (outside /api/v1 for easier access)
 	r.Get("/health", h.health)
 	r.Get("/ready", h.ready)
+
+	// Auth routes
+	r.Route("/auth", func(r chi.Router) {
+		r.Get("/{provider}", h.authLogin)
+		r.Get("/{provider}/callback", h.authCallback)
+
+		// Protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(h.AuthRequired)
+			r.Get("/me", h.authMe)
+			r.Post("/logout", h.authLogout)
+		})
+	})
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/profile", h.getProfile)

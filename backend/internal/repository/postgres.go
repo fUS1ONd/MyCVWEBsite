@@ -28,6 +28,8 @@ func NewPostgresDB(ctx context.Context, url string) (*pgxpool.Pool, error) {
 // Repositories aggregates all repository interfaces
 type Repositories struct {
 	Profile ProfileRepository
+	Auth    AuthRepository
+	Session SessionRepository
 	db      *pgxpool.Pool
 }
 
@@ -35,6 +37,8 @@ type Repositories struct {
 func NewRepositories(db *pgxpool.Pool, cfg *config.Config) *Repositories {
 	return &Repositories{
 		Profile: NewProfileRepo(cfg),
+		Auth:    NewAuthRepo(db),
+		Session: NewSessionRepo(db),
 		db:      db,
 	}
 }
