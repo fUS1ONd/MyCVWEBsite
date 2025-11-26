@@ -15,3 +15,14 @@ type Comment struct {
 	User      *User      `json:"user,omitempty"`
 	Replies   []Comment  `json:"replies,omitempty"`
 }
+
+// CreateCommentRequest represents the request to create a comment
+type CreateCommentRequest struct {
+	Content  string `json:"content" validate:"required,min=1,max=5000"`
+	ParentID *int   `json:"parent_id,omitempty"`
+}
+
+// UpdateCommentRequest represents the request to update a comment
+type UpdateCommentRequest struct {
+	Content string `json:"content" validate:"required,min=1,max=5000"`
+}

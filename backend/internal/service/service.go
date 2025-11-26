@@ -13,6 +13,7 @@ type Services struct {
 	Profile ProfileService
 	Auth    AuthService
 	Post    PostService
+	Comment CommentService
 	repos   *repository.Repositories
 	cfg     *config.Config
 }
@@ -23,6 +24,7 @@ func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
 		Profile: NewProfileService(repos.Profile),
 		Auth:    NewAuthService(repos.Auth, repos.Session, cfg),
 		Post:    NewPostService(repos.Post),
+		Comment: NewCommentService(repos.Comment, repos.Post),
 		repos:   repos,
 		cfg:     cfg,
 	}

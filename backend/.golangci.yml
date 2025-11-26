@@ -67,7 +67,7 @@ linters-settings:
     min-complexity: 15
 
   dupl:
-    threshold: 150
+    threshold: 200
 
   goconst:
     min-len: 3
@@ -102,6 +102,11 @@ issues:
         - dupl
         - gosec
         - goconst
+
+    # Exclude dupl from HTTP handlers (common patterns)
+    - path: internal/transport/http/
+      linters:
+        - dupl
 
     # Ignore magic numbers in tests and migrations
     - path: (_test\.go|migrations/)

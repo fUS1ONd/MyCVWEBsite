@@ -30,6 +30,7 @@ type Repositories struct {
 	Auth    AuthRepository
 	Session SessionRepository
 	Post    PostRepository
+	Comment CommentRepository
 	db      *pgxpool.Pool
 }
 
@@ -40,6 +41,7 @@ func NewRepositories(db *pgxpool.Pool, cfg *config.Config) *Repositories {
 		Auth:    NewAuthRepo(db),
 		Session: NewSessionRepo(db),
 		Post:    NewPostRepo(db),
+		Comment: NewCommentRepo(db),
 		db:      db,
 	}
 }
