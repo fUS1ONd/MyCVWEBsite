@@ -27,3 +27,35 @@ type Media struct {
 	Size      int64  `json:"size"`
 	SortOrder int    `json:"sort_order"`
 }
+
+// CreatePostRequest represents the request to create a post
+type CreatePostRequest struct {
+	Title     string `json:"title" validate:"required,min=3,max=255"`
+	Content   string `json:"content" validate:"required,min=10"`
+	Preview   string `json:"preview"`
+	Published bool   `json:"published"`
+}
+
+// UpdatePostRequest represents the request to update a post
+type UpdatePostRequest struct {
+	Title     string `json:"title" validate:"required,min=3,max=255"`
+	Content   string `json:"content" validate:"required,min=10"`
+	Preview   string `json:"preview"`
+	Published bool   `json:"published"`
+}
+
+// ListPostsRequest represents query parameters for listing posts
+type ListPostsRequest struct {
+	Page      int   `json:"page" validate:"omitempty,min=1"`
+	Limit     int   `json:"limit" validate:"omitempty,min=1,max=100"`
+	Published *bool `json:"published,omitempty"`
+}
+
+// PostsListResponse represents paginated posts response
+type PostsListResponse struct {
+	Posts      []Post `json:"posts"`
+	TotalCount int    `json:"total_count"`
+	Page       int    `json:"page"`
+	Limit      int    `json:"limit"`
+	TotalPages int    `json:"total_pages"`
+}

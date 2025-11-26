@@ -29,6 +29,7 @@ type Repositories struct {
 	Profile ProfileRepository
 	Auth    AuthRepository
 	Session SessionRepository
+	Post    PostRepository
 	db      *pgxpool.Pool
 }
 
@@ -38,6 +39,7 @@ func NewRepositories(db *pgxpool.Pool, cfg *config.Config) *Repositories {
 		Profile: NewProfileRepo(db),
 		Auth:    NewAuthRepo(db),
 		Session: NewSessionRepo(db),
+		Post:    NewPostRepo(db),
 		db:      db,
 	}
 }

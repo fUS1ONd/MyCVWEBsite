@@ -58,10 +58,17 @@ func (h *Handler) InitRoutes() http.Handler {
 		// Public endpoints
 		r.Get("/profile", h.getProfile)
 
+		// Posts endpoints
+		r.Get("/posts", h.listPosts)
+		r.Get("/posts/{slug}", h.getPostBySlug)
+
 		// Admin endpoints
 		r.Group(func(r chi.Router) {
 			r.Use(h.AdminRequired)
 			r.Put("/admin/profile", h.updateProfile)
+			r.Post("/admin/posts", h.createPost)
+			r.Put("/admin/posts/{id}", h.updatePost)
+			r.Delete("/admin/posts/{id}", h.deletePost)
 		})
 	})
 

@@ -12,6 +12,7 @@ import (
 type Services struct {
 	Profile ProfileService
 	Auth    AuthService
+	Post    PostService
 	repos   *repository.Repositories
 	cfg     *config.Config
 }
@@ -21,6 +22,7 @@ func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
 	return &Services{
 		Profile: NewProfileService(repos.Profile),
 		Auth:    NewAuthService(repos.Auth, repos.Session, cfg),
+		Post:    NewPostService(repos.Post),
 		repos:   repos,
 		cfg:     cfg,
 	}
