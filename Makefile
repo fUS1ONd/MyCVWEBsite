@@ -1,9 +1,11 @@
-.PHONY: build run test lint format docker-up docker-down clean backend-build backend-run backend-test backend-lint frontend-install frontend-dev frontend-build frontend-lint frontend-format
+.PHONY: build run test lint format docker-up docker-down clean backend-build backend-run backend-test backend-lint frontend-install frontend-dev frontend-build frontend-lint frontend-format migrate-up migrate-down migrate-create seed
 
 APP_NAME=personal-web-platform
 BACKEND_DIR=backend
 FRONTEND_DIR=frontend
 CMD_PATH=$(BACKEND_DIR)/cmd/app/main.go
+MIGRATE_DIR=$(BACKEND_DIR)/migrations
+DATABASE_URL?=postgres://postgres:postgres@localhost:5432/pwp_db?sslmode=disable
 
 # Backend commands
 backend-build:
@@ -17,6 +19,20 @@ backend-test:
 
 backend-lint:
 	cd $(BACKEND_DIR) && golangci-lint run
+
+# Database migration commands
+migrate-up:
+	migrate -path $(MIGRATE_DIR) -database "$(DATABASE_URL)" up
+
+migrate-down:
+	migrate -path $(MIGRATE_DIR) -database "$(DATABASE_URL)" down
+
+migrate-create:
+	@read -p "Enter migration name: " name; \
+	migrate create -ext sql -dir $(MIGRATE_DIR) -seq $$name
+
+seed:
+	psql "$(DATABASE_URL)" -f $(MIGRATE_DIR)/seeds.sql
 
 # Frontend commands
 frontend-install:
