@@ -168,15 +168,15 @@
 - [x] Создать endpoint PUT /api/v1/admin/profile (требует AdminRequired)
 
 ### 4.2 Posts API
-- [ ] Реализовать PostRepository (Create, Update, Delete, GetByID, GetBySlug, List with pagination)
-- [ ] Реализовать PostService с бизнес-логикой (валидация, slug generation, permission checks)
-- [ ] Создать endpoint GET /api/v1/posts (список, пагинация, фильтры по published)
-- [ ] Создать endpoint GET /api/v1/posts/{slug} (детали поста)
-- [ ] Создать endpoint POST /api/v1/admin/posts (создание, AdminRequired)
-- [ ] Создать endpoint PUT /api/v1/admin/posts/{id} (редактирование, AdminRequired)
-- [ ] Создать endpoint DELETE /api/v1/admin/posts/{id} (удаление, AdminRequired)
-- [ ] Добавить поддержку draft/published статусов
-- [ ] Реализовать автогенерацию slug из title (транслитерация)
+- [x] Реализовать PostRepository (Create, Update, Delete, GetByID, GetBySlug, List with pagination)
+- [x] Реализовать PostService с бизнес-логикой (валидация, slug generation, permission checks)
+- [x] Создать endpoint GET /api/v1/posts (список, пагинация, фильтры по published)
+- [x] Создать endpoint GET /api/v1/posts/{slug} (детали поста)
+- [x] Создать endpoint POST /api/v1/admin/posts (создание, AdminRequired)
+- [x] Создать endpoint PUT /api/v1/admin/posts/{id} (редактирование, AdminRequired)
+- [x] Создать endpoint DELETE /api/v1/admin/posts/{id} (удаление, AdminRequired)
+- [x] Добавить поддержку draft/published статусов
+- [x] Реализовать автогенерацию slug из title (транслитерация)
 
 ### 4.3 Comments API
 - [ ] Реализовать CommentRepository (Create, Update, Delete, GetByPostID, GetByID)
