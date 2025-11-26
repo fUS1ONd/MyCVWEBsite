@@ -18,39 +18,39 @@ output:
 linters:
   enable:
     # Essential linters
-    - errcheck      # Check for unchecked errors
-    - gosimple      # Simplify code
-    - govet         # Vet examines Go source code
-    - ineffassign   # Detect ineffectual assignments
-    - staticcheck   # Static analysis checks
-    - typecheck     # Type checking
-    - unused        # Check for unused code
+    - errcheck # Check for unchecked errors
+    - gosimple # Simplify code
+    - govet # Vet examines Go source code
+    - ineffassign # Detect ineffectual assignments
+    - staticcheck # Static analysis checks
+    - typecheck # Type checking
+    - unused # Check for unused code
 
     # Style linters
-    - gofmt         # Check formatting
-    - goimports     # Check import formatting
-    - misspell      # Check for misspelled English words
-    - revive        # Fast, configurable, extensible linter
+    - gofmt # Check formatting
+    - goimports # Check import formatting
+    - misspell # Check for misspelled English words
+    - revive # Fast, configurable, extensible linter
 
     # Bug detection
-    - bodyclose     # Check HTTP response body closed
-    - gocritic      # Opinionated Go linter
-    - gosec         # Security checker
-    - nilerr        # Find code that returns nil even if error is not nil
+    - bodyclose # Check HTTP response body closed
+    - gocritic # Opinionated Go linter
+    - gosec # Security checker
+    - nilerr # Find code that returns nil even if error is not nil
 
     # Performance
-    - prealloc      # Find slice declarations that could be preallocated
+    - prealloc # Find slice declarations that could be preallocated
 
     # Code quality
-    - gocyclo       # Cyclomatic complexity
-    - dupl          # Code clone detection
-    - goconst       # Find repeated strings that could be constants
-    - unconvert     # Remove unnecessary type conversions
+    - gocyclo # Cyclomatic complexity
+    - dupl # Code clone detection
+    - goconst # Find repeated strings that could be constants
+    - unconvert # Remove unnecessary type conversions
 
   disable:
-    - exhaustruct   # Too strict for most cases
-    - varnamelen    # Too opinionated
-    - wrapcheck     # Too strict for error wrapping
+    - exhaustruct # Too strict for most cases
+    - varnamelen # Too opinionated
+    - wrapcheck # Too strict for error wrapping
 
 linters-settings:
   errcheck:
@@ -60,7 +60,8 @@ linters-settings:
   govet:
     enable-all: true
     disable:
-      - shadow  # Too strict
+      - shadow # Too strict
+      - fieldalignment # Prefer readability over minor memory optimization
 
   gocyclo:
     min-complexity: 15
@@ -86,8 +87,8 @@ linters-settings:
 
   gosec:
     excludes:
-      - G104  # Audit errors not checked (covered by errcheck)
-      - G304  # File path from variable (needed for file operations)
+      - G104 # Audit errors not checked (covered by errcheck)
+      - G304 # File path from variable (needed for file operations)
 
 issues:
   exclude-use-default: false

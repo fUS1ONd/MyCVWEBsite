@@ -1,3 +1,4 @@
+// Package config provides application configuration structures and loading
 package config
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+// Config represents application configuration
 type Config struct {
 	Env        string        `yaml:"env" env-default:"local"`
 	HTTPServer HTTPServer    `yaml:"http_server"`
@@ -15,16 +17,19 @@ type Config struct {
 	Profile    ProfileConfig `yaml:"profile"`
 }
 
+// HTTPServer represents HTTP server configuration
 type HTTPServer struct {
 	Address     string        `yaml:"address" env-default:"0.0.0.0:8080"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
 }
 
+// Database represents database configuration
 type Database struct {
 	URL string `yaml:"url" env-required:"true" env:"DATABASE_URL"`
 }
 
+// ProfileConfig represents profile configuration loaded from config file
 type ProfileConfig struct {
 	Name        string   `yaml:"name"`
 	Description string   `yaml:"description"`
@@ -32,12 +37,14 @@ type ProfileConfig struct {
 	Contacts    Contacts `yaml:"contacts"`
 }
 
+// Contacts represents contact information configuration
 type Contacts struct {
 	Email    string `yaml:"email"`
 	Github   string `yaml:"github"`
 	LinkedIn string `yaml:"linkedin"`
 }
 
+// MustLoad loads configuration from file or panics if unable to load
 func MustLoad() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {

@@ -12,6 +12,10 @@ bin/
 # Output of the go coverage tool
 *.out
 
+# Air (hot reload)
+tmp/
+build-errors.log
+
 # Dependency directories
 vendor/
 node_modules/

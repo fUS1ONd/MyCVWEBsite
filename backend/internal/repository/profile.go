@@ -11,6 +11,7 @@ type profileRepo struct {
 	cfg *config.Config
 }
 
+// NewProfileRepo creates a new profile repository implementation
 func NewProfileRepo(cfg *config.Config) ProfileRepository {
 	return &profileRepo{cfg: cfg}
 }

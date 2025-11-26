@@ -1,3 +1,4 @@
+// Package service provides business logic layer
 package service
 
 import (
@@ -7,6 +8,7 @@ import (
 	"personal-web-platform/internal/repository"
 )
 
+// ProfileService defines methods for profile business logic
 type ProfileService interface {
 	GetProfile(ctx context.Context) (domain.Profile, error)
 }
@@ -15,6 +17,7 @@ type profileService struct {
 	repo repository.ProfileRepository
 }
 
+// NewProfileService creates a new profile service implementation
 func NewProfileService(repo repository.ProfileRepository) ProfileService {
 	return &profileService{repo: repo}
 }

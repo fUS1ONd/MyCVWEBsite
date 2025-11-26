@@ -1,3 +1,4 @@
+// Package logger provides structured logging utilities
 package logger
 
 import (
@@ -5,6 +6,7 @@ import (
 	"os"
 )
 
+// SetupLogger creates and configures a logger based on environment
 func SetupLogger(env string) *slog.Logger {
 	var log *slog.Logger
 

@@ -4,7 +4,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "8080:8080"
     environment:
@@ -17,7 +17,14 @@ services:
       - pwp-network
     volumes:
       - ./backend:/app
-    command: go run cmd/app/main.go
+      # Exclude tmp directory to avoid conflicts
+      - /app/tmp
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   frontend:
     image: node:20-alpine
