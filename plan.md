@@ -161,11 +161,11 @@
 **Список задач:**
 
 ### 4.1 Profile API (публичный)
-- [ ] Реализовать ProfileRepository с методом GetProfile() из БД (вместо config)
-- [ ] Создать миграцию для таблицы profile_info (id, name, description, photo_url, activity, updated_at)
-- [ ] Реализовать ProfileService (GetProfile, UpdateProfile - только для админа)
-- [ ] Создать endpoint GET /api/v1/profile (публичный)
-- [ ] Создать endpoint PUT /api/v1/admin/profile (требует AdminRequired)
+- [x] Реализовать ProfileRepository с методом GetProfile() из БД (вместо config)
+- [x] Создать миграцию для таблицы profile_info (id, name, description, photo_url, activity, updated_at)
+- [x] Реализовать ProfileService (GetProfile, UpdateProfile - только для админа)
+- [x] Создать endpoint GET /api/v1/profile (публичный)
+- [x] Создать endpoint PUT /api/v1/admin/profile (требует AdminRequired)
 
 ### 4.2 Posts API
 - [ ] Реализовать PostRepository (Create, Update, Delete, GetByID, GetBySlug, List with pagination)
