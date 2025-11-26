@@ -102,18 +102,18 @@
 
 **Список задач:**
 
-- [ ] Создать миграцию для таблицы oauth_providers (id, user_id, provider, provider_user_id, access_token, refresh_token, expires_at)
-- [ ] Создать миграцию для таблицы sessions (id, user_id, token, expires_at, created_at)
-- [ ] Создать миграцию для таблицы posts (id, title, slug, content, preview, author_id, published, published_at, created_at, updated_at)
-- [ ] Создать миграцию для таблицы comments (id, post_id, user_id, content, parent_id, created_at, updated_at, deleted_at)
-- [ ] Создать миграцию для таблицы media_files (id, filename, path, mime_type, size, uploader_id, created_at)
-- [ ] Создать миграцию для таблицы post_media (post_id, media_id, sort_order)
-- [ ] Создать миграцию для таблицы notification_settings (user_id, email_enabled, push_enabled, new_posts_enabled)
-- [ ] Создать миграцию для таблицы notifications (id, user_id, type, title, message, read, created_at)
-- [ ] Добавить индексы для оптимизации (posts.slug, posts.published_at, comments.post_id, sessions.token)
-- [ ] Создать Domain модели для всех сущностей в internal/domain/
-- [ ] Добавить валидацию на уровне domain models (go-playground/validator)
-- [ ] Создать seed-скрипт для тестовых данных (admin user, sample posts)
+- [x] Создать миграцию для таблицы oauth_providers (id, user_id, provider, provider_user_id, access_token, refresh_token, expires_at)
+- [x] Создать миграцию для таблицы sessions (id, user_id, token, expires_at, created_at)
+- [x] Создать миграцию для таблицы posts (id, title, slug, content, preview, author_id, published, published_at, created_at, updated_at)
+- [x] Создать миграцию для таблицы comments (id, post_id, user_id, content, parent_id, created_at, updated_at, deleted_at)
+- [x] Создать миграцию для таблицы media_files (id, filename, path, mime_type, size, uploader_id, created_at)
+- [x] Создать миграцию для таблицы post_media (post_id, media_id, sort_order)
+- [x] Создать миграцию для таблицы notification_settings (user_id, email_enabled, push_enabled, new_posts_enabled)
+- [x] Создать миграцию для таблицы notifications (id, user_id, type, title, message, read, created_at)
+- [x] Добавить индексы для оптимизации (posts.slug, posts.published_at, comments.post_id, sessions.token)
+- [x] Создать Domain модели для всех сущностей в internal/domain/
+- [x] Добавить валидацию на уровне domain models (go-playground/validator)
+- [x] Создать seed-скрипт для тестовых данных (admin user, sample posts)
 
 **Критерии завершения:**
 - Все миграции применяются без ошибок
