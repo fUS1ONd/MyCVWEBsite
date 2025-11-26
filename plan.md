@@ -129,19 +129,19 @@
 
 **Список задач:**
 
-- [ ] Установить и настроить библиотеку goth для OAuth
-- [ ] Создать структуру config для OAuth провайдеров (client_id, client_secret, callback_url)
-- [ ] Реализовать AuthRepository (CreateUser, GetUserByEmail, LinkOAuthProvider, GetUserByProviderID)
-- [ ] Реализовать SessionRepository (CreateSession, GetSession, DeleteSession, CleanupExpiredSessions)
-- [ ] Создать AuthService с методами (LoginWithOAuth, Logout, ValidateSession, RefreshSession)
-- [ ] Реализовать OAuth endpoints (GET /auth/{provider}, GET /auth/{provider}/callback)
-- [ ] Создать middleware для проверки аутентификации (AuthRequired)
-- [ ] Создать middleware для проверки роли администратора (AdminRequired)
-- [ ] Реализовать механизм хранения JWT токенов или session ID в cookies (httpOnly, secure)
+- [x] Установить и настроить библиотеку goth для OAuth
+- [x] Создать структуру config для OAuth провайдеров (client_id, client_secret, callback_url)
+- [x] Реализовать AuthRepository (CreateUser, GetUserByEmail, LinkOAuthProvider, GetUserByProviderID)
+- [x] Реализовать SessionRepository (CreateSession, GetSession, DeleteSession, CleanupExpiredSessions)
+- [x] Создать AuthService с методами (LoginWithOAuth, Logout, ValidateSession, RefreshSession)
+- [x] Реализовать OAuth endpoints (GET /auth/{provider}, GET /auth/{provider}/callback)
+- [x] Создать middleware для проверки аутентификации (AuthRequired)
+- [x] Создать middleware для проверки роли администратора (AdminRequired)
+- [x] Реализовать механизм хранения JWT токенов или session ID в cookies (httpOnly, secure)
 - [ ] Добавить CSRF protection middleware
-- [ ] Создать endpoint GET /auth/me для получения информации о текущем пользователе
-- [ ] Создать endpoint POST /auth/logout для выхода
-- [ ] Добавить автоматическую очистку просроченных сессий (background goroutine)
+- [x] Создать endpoint GET /auth/me для получения информации о текущем пользователе
+- [x] Создать endpoint POST /auth/logout для выхода
+- [x] Добавить автоматическую очистку просроченных сессий (background goroutine)
 - [ ] Написать unit тесты для AuthService
 - [ ] Написать integration тесты для auth endpoints
 
