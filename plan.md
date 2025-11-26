@@ -179,13 +179,13 @@
 - [x] Реализовать автогенерацию slug из title (транслитерация)
 
 ### 4.3 Comments API
-- [ ] Реализовать CommentRepository (Create, Update, Delete, GetByPostID, GetByID)
-- [ ] Реализовать CommentService (валидация, permission checks, nested comments support)
-- [ ] Создать endpoint GET /api/v1/posts/{slug}/comments (список комментариев с вложенностью)
-- [ ] Создать endpoint POST /api/v1/posts/{slug}/comments (создание, AuthRequired)
-- [ ] Создать endpoint PUT /api/v1/comments/{id} (редактирование своего комментария)
-- [ ] Создать endpoint DELETE /api/v1/comments/{id} (удаление своего или AdminRequired)
-- [ ] Реализовать soft delete для комментариев (deleted_at)
+- [x] Реализовать CommentRepository (Create, Update, Delete, GetByPostID, GetByID)
+- [x] Реализовать CommentService (валидация, permission checks, nested comments support)
+- [x] Создать endpoint GET /api/v1/posts/{slug}/comments (список комментариев с вложенностью)
+- [x] Создать endpoint POST /api/v1/posts/{slug}/comments (создание, AuthRequired)
+- [x] Создать endpoint PUT /api/v1/comments/{id} (редактирование своего комментария)
+- [x] Создать endpoint DELETE /api/v1/comments/{id} (удаление своего или AdminRequired)
+- [x] Реализовать soft delete для комментариев (deleted_at)
 
 ### 4.4 Общие задачи API
 - [ ] Добавить middleware для логирования всех запросов
