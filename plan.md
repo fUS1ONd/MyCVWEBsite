@@ -85,8 +85,8 @@
 - [x] Создать README.md с инструкциями по запуску и разработке
 - [x] Настроить golangci-lint с конфигурацией
 - [x] Настроить CI/CD (GitHub Actions для backend и frontend)
-- [ ] Обновить docker-compose.yml для разработки (hot reload для Go и React)
-- [ ] Добавить healthcheck endpoints (/health, /ready)
+- [x] Обновить docker-compose.yml для разработки (hot reload для Go и React)
+- [x] Добавить healthcheck endpoints (/health, /ready)
 
 **Критерии завершения:**
 - Проект собирается одной командой (make build)
