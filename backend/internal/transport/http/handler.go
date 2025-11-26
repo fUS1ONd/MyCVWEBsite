@@ -55,7 +55,14 @@ func (h *Handler) InitRoutes() http.Handler {
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
+		// Public endpoints
 		r.Get("/profile", h.getProfile)
+
+		// Admin endpoints
+		r.Group(func(r chi.Router) {
+			r.Use(h.AdminRequired)
+			r.Put("/admin/profile", h.updateProfile)
+		})
 	})
 
 	return r

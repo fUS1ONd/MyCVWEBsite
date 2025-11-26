@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"personal-web-platform/config"
-	"personal-web-platform/internal/domain"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -36,7 +35,7 @@ type Repositories struct {
 // NewRepositories creates a new Repositories instance with all implementations
 func NewRepositories(db *pgxpool.Pool, cfg *config.Config) *Repositories {
 	return &Repositories{
-		Profile: NewProfileRepo(cfg),
+		Profile: NewProfileRepo(db),
 		Auth:    NewAuthRepo(db),
 		Session: NewSessionRepo(db),
 		db:      db,
@@ -46,9 +45,4 @@ func NewRepositories(db *pgxpool.Pool, cfg *config.Config) *Repositories {
 // Ping checks database connectivity
 func (r *Repositories) Ping(ctx context.Context) error {
 	return r.db.Ping(ctx)
-}
-
-// ProfileRepository defines methods for profile data access
-type ProfileRepository interface {
-	Get(ctx context.Context) (domain.Profile, error)
 }
