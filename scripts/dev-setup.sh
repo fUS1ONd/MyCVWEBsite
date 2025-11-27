@@ -17,10 +17,17 @@ fi
 
 # Wait for PostgreSQL to be ready
 echo "⏳ Waiting for PostgreSQL..."
-timeout 30 bash -c 'until docker compose exec -T db pg_isready -U postgres > /dev/null 2>&1; do sleep 1; done' || {
-    echo "❌ PostgreSQL failed to start"
-    exit 1
-}
+RETRY_COUNT=0
+MAX_RETRIES=30
+until [ "$(docker compose ps db --format json | grep -o '"Health":"[^"]*"' | cut -d'"' -f4)" = "healthy" ]; do
+    RETRY_COUNT=$((RETRY_COUNT+1))
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+        echo "❌ PostgreSQL failed to start after $MAX_RETRIES attempts"
+        docker compose logs db --tail 20
+        exit 1
+    fi
+    sleep 1
+done
 
 echo "✅ PostgreSQL is ready"
 

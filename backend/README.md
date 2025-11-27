@@ -4,7 +4,7 @@ Backend API для персонального веб-сайта (CV + AI Blog), 
 
 ## Технологии
 
-- **Go** 1.22+
+- **Go** 1.25
 - **Chi** - HTTP роутер
 - **pgx/v5** - PostgreSQL драйвер
 - **goth** - OAuth аутентификация (VK, Google, GitHub)
