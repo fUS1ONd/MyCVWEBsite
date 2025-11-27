@@ -32,6 +32,7 @@ func NewAuthRepo(db *pgxpool.Pool) AuthRepository {
 
 func (r *authRepo) CreateUser(ctx context.Context, email string, role domain.Role) (*domain.User, error) {
 	var user domain.User
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		INSERT INTO users (email, role, created_at)
@@ -39,7 +40,7 @@ func (r *authRepo) CreateUser(ctx context.Context, email string, role domain.Rol
 		RETURNING id, email, role, created_at
 	`
 
-	err := r.db.QueryRow(ctx, query, email, role).Scan(
+	err := db.QueryRow(ctx, query, email, role).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Role,
@@ -54,6 +55,7 @@ func (r *authRepo) CreateUser(ctx context.Context, email string, role domain.Rol
 
 func (r *authRepo) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var user domain.User
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT id, email, role, created_at
@@ -61,7 +63,7 @@ func (r *authRepo) GetUserByEmail(ctx context.Context, email string) (*domain.Us
 		WHERE email = $1
 	`
 
-	err := r.db.QueryRow(ctx, query, email).Scan(
+	err := db.QueryRow(ctx, query, email).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Role,
@@ -79,6 +81,7 @@ func (r *authRepo) GetUserByEmail(ctx context.Context, email string) (*domain.Us
 
 func (r *authRepo) GetUserByID(ctx context.Context, id int) (*domain.User, error) {
 	var user domain.User
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT id, email, role, created_at
@@ -86,7 +89,7 @@ func (r *authRepo) GetUserByID(ctx context.Context, id int) (*domain.User, error
 		WHERE id = $1
 	`
 
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err := db.QueryRow(ctx, query, id).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Role,
@@ -103,6 +106,8 @@ func (r *authRepo) GetUserByID(ctx context.Context, id int) (*domain.User, error
 }
 
 func (r *authRepo) LinkOAuthProvider(ctx context.Context, provider *domain.OAuthProvider) error {
+	db := GetQueryEngine(ctx, r.db)
+
 	query := `
 		INSERT INTO oauth_providers (user_id, provider, provider_user_id, access_token, refresh_token, expires_at, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
@@ -115,7 +120,7 @@ func (r *authRepo) LinkOAuthProvider(ctx context.Context, provider *domain.OAuth
 		RETURNING id, created_at, updated_at
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err := db.QueryRow(ctx, query,
 		provider.UserID,
 		provider.Provider,
 		provider.ProviderUserID,
@@ -133,6 +138,7 @@ func (r *authRepo) LinkOAuthProvider(ctx context.Context, provider *domain.OAuth
 
 func (r *authRepo) GetUserByProviderID(ctx context.Context, providerName, providerUserID string) (*domain.User, error) {
 	var user domain.User
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT u.id, u.email, u.role, u.created_at
@@ -141,7 +147,7 @@ func (r *authRepo) GetUserByProviderID(ctx context.Context, providerName, provid
 		WHERE op.provider = $1 AND op.provider_user_id = $2
 	`
 
-	err := r.db.QueryRow(ctx, query, providerName, providerUserID).Scan(
+	err := db.QueryRow(ctx, query, providerName, providerUserID).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Role,
@@ -159,6 +165,7 @@ func (r *authRepo) GetUserByProviderID(ctx context.Context, providerName, provid
 
 func (r *authRepo) GetOAuthProvider(ctx context.Context, userID int, providerName string) (*domain.OAuthProvider, error) {
 	var provider domain.OAuthProvider
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT id, user_id, provider, provider_user_id, access_token, refresh_token, expires_at, created_at, updated_at
@@ -166,7 +173,7 @@ func (r *authRepo) GetOAuthProvider(ctx context.Context, userID int, providerNam
 		WHERE user_id = $1 AND provider = $2
 	`
 
-	err := r.db.QueryRow(ctx, query, userID, providerName).Scan(
+	err := db.QueryRow(ctx, query, userID, providerName).Scan(
 		&provider.ID,
 		&provider.UserID,
 		&provider.Provider,
@@ -188,13 +195,15 @@ func (r *authRepo) GetOAuthProvider(ctx context.Context, userID int, providerNam
 }
 
 func (r *authRepo) UpdateOAuthProvider(ctx context.Context, provider *domain.OAuthProvider) error {
+	db := GetQueryEngine(ctx, r.db)
+
 	query := `
 		UPDATE oauth_providers
 		SET access_token = $1, refresh_token = $2, expires_at = $3, updated_at = NOW()
 		WHERE id = $4
 	`
 
-	_, err := r.db.Exec(ctx, query,
+	_, err := db.Exec(ctx, query,
 		provider.AccessToken,
 		provider.RefreshToken,
 		provider.ExpiresAt,

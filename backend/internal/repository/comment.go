@@ -31,6 +31,7 @@ func NewCommentRepo(db *pgxpool.Pool) CommentRepository {
 
 func (r *commentRepo) Create(ctx context.Context, comment *domain.Comment) (*domain.Comment, error) {
 	var createdComment domain.Comment
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		INSERT INTO comments (post_id, user_id, content, parent_id, created_at, updated_at)
@@ -38,7 +39,7 @@ func (r *commentRepo) Create(ctx context.Context, comment *domain.Comment) (*dom
 		RETURNING id, post_id, user_id, content, parent_id, created_at, updated_at, deleted_at
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err := db.QueryRow(ctx, query,
 		comment.PostID,
 		comment.UserID,
 		comment.Content,
@@ -62,6 +63,7 @@ func (r *commentRepo) Create(ctx context.Context, comment *domain.Comment) (*dom
 
 func (r *commentRepo) Update(ctx context.Context, comment *domain.Comment) (*domain.Comment, error) {
 	var updatedComment domain.Comment
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		UPDATE comments
@@ -70,7 +72,7 @@ func (r *commentRepo) Update(ctx context.Context, comment *domain.Comment) (*dom
 		RETURNING id, post_id, user_id, content, parent_id, created_at, updated_at, deleted_at
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err := db.QueryRow(ctx, query,
 		comment.Content,
 		comment.ID,
 	).Scan(
@@ -94,13 +96,15 @@ func (r *commentRepo) Update(ctx context.Context, comment *domain.Comment) (*dom
 }
 
 func (r *commentRepo) Delete(ctx context.Context, id int) error {
+	db := GetQueryEngine(ctx, r.db)
+
 	query := `
 		UPDATE comments
 		SET deleted_at = $1
 		WHERE id = $2 AND deleted_at IS NULL
 	`
 
-	result, err := r.db.Exec(ctx, query, time.Now(), id)
+	result, err := db.Exec(ctx, query, time.Now(), id)
 	if err != nil {
 		return fmt.Errorf("failed to delete comment: %w", err)
 	}
@@ -114,6 +118,7 @@ func (r *commentRepo) Delete(ctx context.Context, id int) error {
 
 func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, error) {
 	var comment domain.Comment
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.created_at, c.updated_at, c.deleted_at,
@@ -125,7 +130,7 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 
 	var userEmail string
 	var userRole domain.Role
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err := db.QueryRow(ctx, query, id).Scan(
 		&comment.ID,
 		&comment.PostID,
 		&comment.UserID,
@@ -157,6 +162,7 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 }
 
 func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Comment, error) {
+	db := GetQueryEngine(ctx, r.db)
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.created_at, c.updated_at, c.deleted_at,
 		       u.email, u.role
@@ -166,7 +172,7 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Com
 		ORDER BY c.created_at ASC
 	`
 
-	rows, err := r.db.Query(ctx, query, postID)
+	rows, err := db.Query(ctx, query, postID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get comments by post id: %w", err)
 	}

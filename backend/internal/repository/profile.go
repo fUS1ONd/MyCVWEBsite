@@ -29,6 +29,7 @@ func NewProfileRepo(db *pgxpool.Pool) ProfileRepository {
 func (r *profileRepo) GetProfile(ctx context.Context) (*domain.Profile, error) {
 	var profile domain.Profile
 	var contactsJSON []byte
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT id, name, description, photo_url, activity, contacts, created_at, updated_at
@@ -37,7 +38,7 @@ func (r *profileRepo) GetProfile(ctx context.Context) (*domain.Profile, error) {
 		LIMIT 1
 	`
 
-	err := r.db.QueryRow(ctx, query).Scan(
+	err := db.QueryRow(ctx, query).Scan(
 		&profile.ID,
 		&profile.Name,
 		&profile.Description,
@@ -65,6 +66,7 @@ func (r *profileRepo) GetProfile(ctx context.Context) (*domain.Profile, error) {
 func (r *profileRepo) UpdateProfile(ctx context.Context, req *domain.UpdateProfileRequest) (*domain.Profile, error) {
 	var profile domain.Profile
 	var contactsJSON []byte
+	db := GetQueryEngine(ctx, r.db)
 
 	// Marshal contacts to JSON
 	contacts, err := json.Marshal(req.Contacts)
@@ -79,7 +81,7 @@ func (r *profileRepo) UpdateProfile(ctx context.Context, req *domain.UpdateProfi
 		RETURNING id, name, description, photo_url, activity, contacts, created_at, updated_at
 	`
 
-	err = r.db.QueryRow(ctx, query,
+	err = db.QueryRow(ctx, query,
 		req.Name,
 		req.Description,
 		req.PhotoURL,

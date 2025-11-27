@@ -2,7 +2,10 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+
+	"personal-web-platform/internal/domain/derr"
 )
 
 // Response represents standard API response structure
@@ -66,6 +69,22 @@ func RespondCreated(w http.ResponseWriter, data any) {
 // RespondNoContent sends a 204 No Content response
 func RespondNoContent(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// RespondWithError maps domain errors to HTTP errors
+func RespondWithError(w http.ResponseWriter, err error) {
+	switch {
+	case errors.Is(err, derr.ErrNotFound):
+		RespondNotFound(w, "resource not found")
+	case errors.Is(err, derr.ErrConflict):
+		RespondConflict(w, "resource conflict")
+	case errors.Is(err, derr.ErrPermission):
+		RespondForbidden(w, "permission denied")
+	case errors.Is(err, derr.ErrValidation):
+		RespondBadRequest(w, err.Error())
+	default:
+		RespondInternalError(w)
+	}
 }
 
 // RespondError sends an error JSON response

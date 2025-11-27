@@ -30,13 +30,15 @@ func NewSessionRepo(db *pgxpool.Pool) SessionRepository {
 }
 
 func (r *sessionRepo) CreateSession(ctx context.Context, session *domain.Session) error {
+	db := GetQueryEngine(ctx, r.db)
+
 	query := `
 		INSERT INTO sessions (user_id, token, expires_at, created_at)
 		VALUES ($1, $2, $3, NOW())
 		RETURNING id, created_at
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err := db.QueryRow(ctx, query,
 		session.UserID,
 		session.Token,
 		session.ExpiresAt,
@@ -51,6 +53,7 @@ func (r *sessionRepo) CreateSession(ctx context.Context, session *domain.Session
 
 func (r *sessionRepo) GetSession(ctx context.Context, token string) (*domain.Session, error) {
 	var session domain.Session
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT id, user_id, token, expires_at, created_at
@@ -58,7 +61,7 @@ func (r *sessionRepo) GetSession(ctx context.Context, token string) (*domain.Ses
 		WHERE token = $1 AND expires_at > NOW()
 	`
 
-	err := r.db.QueryRow(ctx, query, token).Scan(
+	err := db.QueryRow(ctx, query, token).Scan(
 		&session.ID,
 		&session.UserID,
 		&session.Token,
@@ -76,9 +79,11 @@ func (r *sessionRepo) GetSession(ctx context.Context, token string) (*domain.Ses
 }
 
 func (r *sessionRepo) DeleteSession(ctx context.Context, token string) error {
+	db := GetQueryEngine(ctx, r.db)
+
 	query := `DELETE FROM sessions WHERE token = $1`
 
-	_, err := r.db.Exec(ctx, query, token)
+	_, err := db.Exec(ctx, query, token)
 	if err != nil {
 		return fmt.Errorf("failed to delete session: %w", err)
 	}
@@ -87,9 +92,11 @@ func (r *sessionRepo) DeleteSession(ctx context.Context, token string) error {
 }
 
 func (r *sessionRepo) DeleteUserSessions(ctx context.Context, userID int) error {
+	db := GetQueryEngine(ctx, r.db)
+
 	query := `DELETE FROM sessions WHERE user_id = $1`
 
-	_, err := r.db.Exec(ctx, query, userID)
+	_, err := db.Exec(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("failed to delete user sessions: %w", err)
 	}
@@ -98,9 +105,11 @@ func (r *sessionRepo) DeleteUserSessions(ctx context.Context, userID int) error 
 }
 
 func (r *sessionRepo) CleanupExpiredSessions(ctx context.Context) (int64, error) {
+	db := GetQueryEngine(ctx, r.db)
+
 	query := `DELETE FROM sessions WHERE expires_at < $1`
 
-	result, err := r.db.Exec(ctx, query, time.Now())
+	result, err := db.Exec(ctx, query, time.Now())
 	if err != nil {
 		return 0, fmt.Errorf("failed to cleanup expired sessions: %w", err)
 	}

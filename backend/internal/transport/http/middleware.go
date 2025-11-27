@@ -2,9 +2,12 @@ package http
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"sync"
 	"time"
@@ -256,4 +259,36 @@ func (h *Handler) RateLimit(cfg *config.RateLimit) func(http.Handler) http.Handl
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+// CacheMiddleware implements ETag caching
+func (h *Handler) CacheMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Only cache GET methods
+		if r.Method != http.MethodGet {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Capture response
+		rec := httptest.NewRecorder()
+		next.ServeHTTP(rec, r)
+
+		// Generate ETag based on body content
+		hash := sha256.Sum256(rec.Body.Bytes())
+		etag := hex.EncodeToString(hash[:])
+
+		if match := r.Header.Get("If-None-Match"); match != "" && match == etag {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+
+		w.Header().Set("ETag", etag)
+		for k, v := range rec.Header() {
+			w.Header()[k] = v
+		}
+		w.WriteHeader(rec.Code)
+		// Write response body, error can be safely ignored as status already sent
+		_, _ = w.Write(rec.Body.Bytes()) //nolint:errcheck // cannot handle error after status sent
+	})
 }

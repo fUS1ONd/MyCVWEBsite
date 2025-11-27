@@ -33,6 +33,7 @@ func NewPostRepo(db *pgxpool.Pool) PostRepository {
 func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post, error) {
 	var createdPost domain.Post
 	var publishedAt *time.Time
+	db := GetQueryEngine(ctx, r.db)
 
 	if post.Published {
 		now := time.Now()
@@ -45,7 +46,7 @@ func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post,
 		RETURNING id, title, slug, content, preview, author_id, published, published_at, created_at, updated_at
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err := db.QueryRow(ctx, query,
 		post.Title,
 		post.Slug,
 		post.Content,
@@ -75,6 +76,7 @@ func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post,
 func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post, error) {
 	var updatedPost domain.Post
 	var publishedAt *time.Time
+	db := GetQueryEngine(ctx, r.db)
 
 	// If publishing for the first time, set published_at
 	if post.Published && post.PublishedAt.IsZero() {
@@ -91,7 +93,7 @@ func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post,
 		RETURNING id, title, slug, content, preview, author_id, published, published_at, created_at, updated_at
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err := db.QueryRow(ctx, query,
 		post.Title,
 		post.Slug,
 		post.Content,
@@ -119,9 +121,10 @@ func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post,
 }
 
 func (r *postRepo) Delete(ctx context.Context, id int) error {
+	db := GetQueryEngine(ctx, r.db)
 	query := `DELETE FROM posts WHERE id = $1`
 
-	result, err := r.db.Exec(ctx, query, id)
+	result, err := db.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete post: %w", err)
 	}
@@ -135,6 +138,7 @@ func (r *postRepo) Delete(ctx context.Context, id int) error {
 
 func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) {
 	var post domain.Post
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at, p.created_at, p.updated_at,
@@ -145,7 +149,7 @@ func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) {
 	`
 
 	var authorEmail string
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err := db.QueryRow(ctx, query, id).Scan(
 		&post.ID,
 		&post.Title,
 		&post.Slug,
@@ -178,6 +182,7 @@ func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) {
 
 func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, error) {
 	var post domain.Post
+	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at, p.created_at, p.updated_at,
@@ -188,7 +193,7 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, er
 	`
 
 	var authorEmail string
-	err := r.db.QueryRow(ctx, query, slug).Scan(
+	err := db.QueryRow(ctx, query, slug).Scan(
 		&post.ID,
 		&post.Title,
 		&post.Slug,
@@ -220,6 +225,8 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, er
 }
 
 func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]domain.Post, int, error) {
+	db := GetQueryEngine(ctx, r.db)
+
 	// Set default values
 	page := req.Page
 	if page < 1 {
@@ -264,13 +271,13 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 	// Execute count query
 	var totalCount int
 	countArgs := args[:len(args)-2] // Exclude limit and offset for count query
-	err := r.db.QueryRow(ctx, countQuery+whereClause, countArgs...).Scan(&totalCount)
+	err := db.QueryRow(ctx, countQuery+whereClause, countArgs...).Scan(&totalCount)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count posts: %w", err)
 	}
 
 	// Execute list query
-	rows, err := r.db.Query(ctx, baseQuery+whereClause+orderClause+limitClause, args...)
+	rows, err := db.Query(ctx, baseQuery+whereClause+orderClause+limitClause, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list posts: %w", err)
 	}
