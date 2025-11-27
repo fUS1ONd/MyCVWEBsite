@@ -52,10 +52,10 @@ frontend-format:
 
 # Docker commands
 docker-up:
-	docker-compose up -d --build
+	docker compose up -d --build
 
 docker-down:
-	docker-compose down
+	docker compose down
 
 # Shortcut commands
 build: backend-build frontend-build
