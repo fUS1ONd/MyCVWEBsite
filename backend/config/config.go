@@ -60,10 +60,11 @@ type Auth struct {
 
 // OAuth represents OAuth providers configuration
 type OAuth struct {
-	BaseURL string        `yaml:"base_url" env:"OAUTH_BASE_URL" env-required:"true"`
-	Google  OAuthProvider `yaml:"google"`
-	GitHub  OAuthProvider `yaml:"github"`
-	VK      OAuthProvider `yaml:"vk"`
+	BaseURL     string        `yaml:"base_url" env:"OAUTH_BASE_URL" env-required:"true"`
+	FrontendURL string        `yaml:"frontend_url" env:"OAUTH_FRONTEND_URL" env-default:"http://localhost:5173"`
+	Google      OAuthProvider `yaml:"google"`
+	GitHub      OAuthProvider `yaml:"github"`
+	VK          OAuthProvider `yaml:"vk"`
 }
 
 // OAuthProvider represents individual OAuth provider configuration

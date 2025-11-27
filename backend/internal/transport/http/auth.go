@@ -37,7 +37,7 @@ func (h *Handler) authCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Login with OAuth
-	user, session, err := h.services.Auth.LoginWithOAuth(r.Context(), gothUser)
+	_, session, err := h.services.Auth.LoginWithOAuth(r.Context(), gothUser)
 	if err != nil {
 		h.log.Error("failed to login with oauth", "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -47,16 +47,10 @@ func (h *Handler) authCallback(w http.ResponseWriter, r *http.Request) {
 	// Set session cookie
 	h.setSessionCookie(w, session.Token)
 
-	// Redirect to frontend or return user info
-	response := map[string]interface{}{
-		"user":    user,
-		"message": "authentication successful",
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		h.log.Error("failed to encode response", "error", err)
-	}
+	// Redirect to frontend blog page
+	// User can now access protected routes with the session cookie
+	frontendURL := "http://localhost:5173/blog"
+	http.Redirect(w, r, frontendURL, http.StatusFound)
 }
 
 // authMe returns current user info
