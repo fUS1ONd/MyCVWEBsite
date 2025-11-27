@@ -1,23 +1,11 @@
-import { QueryClientProvider } from '@tanstack/react-query';
-import { HelmetProvider } from 'react-helmet-async';
-import { Toaster } from 'react-hot-toast';
-import { queryClient } from './lib/queryClient';
-import { AuthProvider } from './contexts/AuthContext';
-import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { AppRoutes } from './routes';
-
 function App() {
   return (
-    <ErrorBoundary>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <AppRoutes />
-            <Toaster />
-          </AuthProvider>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </ErrorBoundary>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-900">Welcome</h1>
+        <p className="mt-4 text-gray-600">Your app is ready.</p>
+      </div>
+    </div>
   );
 }
 
