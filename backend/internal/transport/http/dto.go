@@ -2,37 +2,35 @@ package http
 
 import "personal-web-platform/internal/domain"
 
-// Swagger models for documentation purposes
-
 // ProfileResponse represents profile data response
 type ProfileResponse struct {
-	ID          int              `json:"id" example:"1"`
-	Name        string           `json:"name" example:"John Doe"`
-	Description string           `json:"description" example:"Senior Software Engineer"`
-	PhotoURL    string           `json:"photo_url,omitempty" example:"https://example.com/photo.jpg"`
-	Activity    string           `json:"activity" example:"Building awesome products"`
+	ID          int              `json:"id"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	PhotoURL    string           `json:"photo_url,omitempty"`
+	Activity    string           `json:"activity"`
 	Contacts    ContactsResponse `json:"contacts"`
 }
 
 // ContactsResponse represents contact information
 type ContactsResponse struct {
-	Email    string `json:"email" example:"john@example.com"`
-	GitHub   string `json:"github" example:"https://github.com/johndoe"`
-	LinkedIn string `json:"linkedin" example:"https://linkedin.com/in/johndoe"`
+	Email    string `json:"email"`
+	GitHub   string `json:"github"`
+	LinkedIn string `json:"linkedin"`
 }
 
 // PostResponse represents post data response
 type PostResponse struct {
-	ID          int64  `json:"id" example:"1"`
-	Title       string `json:"title" example:"Introduction to AI"`
-	Slug        string `json:"slug" example:"introduction-to-ai"`
-	Content     string `json:"content" example:"# Introduction\n\nThis is a post about AI..."`
-	Preview     string `json:"preview" example:"Learn the basics of artificial intelligence"`
-	AuthorID    int64  `json:"author_id" example:"1"`
-	Published   bool   `json:"published" example:"true"`
-	PublishedAt string `json:"published_at,omitempty" example:"2025-01-15T10:00:00Z"`
-	CreatedAt   string `json:"created_at" example:"2025-01-15T09:00:00Z"`
-	UpdatedAt   string `json:"updated_at" example:"2025-01-15T09:30:00Z"`
+	ID          int64  `json:"id"`
+	Title       string `json:"title"`
+	Slug        string `json:"slug"`
+	Content     string `json:"content"`
+	Preview     string `json:"preview"`
+	AuthorID    int64  `json:"author_id"`
+	Published   bool   `json:"published"`
+	PublishedAt string `json:"published_at,omitempty"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 }
 
 // PostListResponse represents paginated posts response
@@ -43,74 +41,74 @@ type PostListResponse struct {
 
 // CommentResponse represents comment data response
 type CommentResponse struct {
-	ID        int64             `json:"id" example:"1"`
-	PostID    int64             `json:"post_id" example:"1"`
-	UserID    int64             `json:"user_id" example:"2"`
-	Content   string            `json:"content" example:"Great post!"`
-	ParentID  *int64            `json:"parent_id,omitempty" example:"null"`
-	CreatedAt string            `json:"created_at" example:"2025-01-15T10:30:00Z"`
-	UpdatedAt string            `json:"updated_at" example:"2025-01-15T10:30:00Z"`
-	DeletedAt *string           `json:"deleted_at,omitempty" example:"null"`
+	ID        int64             `json:"id"`
+	PostID    int64             `json:"post_id"`
+	UserID    int64             `json:"user_id"`
+	Content   string            `json:"content"`
+	ParentID  *int64            `json:"parent_id,omitempty"`
+	CreatedAt string            `json:"created_at"`
+	UpdatedAt string            `json:"updated_at"`
+	DeletedAt *string           `json:"deleted_at,omitempty"`
 	Replies   []CommentResponse `json:"replies,omitempty"`
 }
 
 // UserResponse represents user data response
 type UserResponse struct {
-	ID        int    `json:"id" example:"1"`
-	Email     string `json:"email" example:"user@example.com"`
-	Role      string `json:"role" example:"user"`
-	CreatedAt string `json:"created_at" example:"2025-01-15T08:00:00Z"`
+	ID        int    `json:"id"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	CreatedAt string `json:"created_at"`
 }
 
 // CreatePostRequest represents post creation request
 type CreatePostRequest struct {
-	Title     string `json:"title" binding:"required" example:"My New Post"`
-	Content   string `json:"content" binding:"required" example:"# Content\n\nPost content here..."`
-	Preview   string `json:"preview" example:"Short preview of the post"`
-	Published bool   `json:"published" example:"false"`
+	Title     string `json:"title" binding:"required"`
+	Content   string `json:"content" binding:"required"`
+	Preview   string `json:"preview"`
+	Published bool   `json:"published"`
 }
 
 // UpdatePostRequest represents post update request
 type UpdatePostRequest struct {
-	Title     *string `json:"title,omitempty" example:"Updated Title"`
-	Slug      *string `json:"slug,omitempty" example:"updated-slug"`
-	Content   *string `json:"content,omitempty" example:"# Updated Content"`
-	Preview   *string `json:"preview,omitempty" example:"Updated preview"`
-	Published *bool   `json:"published,omitempty" example:"true"`
+	Title     *string `json:"title,omitempty"`
+	Slug      *string `json:"slug,omitempty"`
+	Content   *string `json:"content,omitempty"`
+	Preview   *string `json:"preview,omitempty"`
+	Published *bool   `json:"published,omitempty"`
 }
 
 // UpdateProfileRequest represents profile update request
 type UpdateProfileRequest struct {
-	Name        *string `json:"name,omitempty" example:"John Doe"`
-	Description *string `json:"description,omitempty" example:"Senior Engineer"`
-	PhotoURL    *string `json:"photo_url,omitempty" example:"https://example.com/photo.jpg"`
-	Activity    *string `json:"activity,omitempty" example:"Building products"`
-	Email       *string `json:"email,omitempty" example:"john@example.com"`
-	GitHub      *string `json:"github,omitempty" example:"https://github.com/johndoe"`
-	LinkedIn    *string `json:"linkedin,omitempty" example:"https://linkedin.com/in/johndoe"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	PhotoURL    *string `json:"photo_url,omitempty"`
+	Activity    *string `json:"activity,omitempty"`
+	Email       *string `json:"email,omitempty"`
+	GitHub      *string `json:"github,omitempty"`
+	LinkedIn    *string `json:"linkedin,omitempty"`
 }
 
 // CreateCommentRequest represents comment creation request
 type CreateCommentRequest struct {
-	Content  string `json:"content" binding:"required" example:"This is a great post!"`
-	ParentID *int64 `json:"parent_id,omitempty" example:"null"`
+	Content  string `json:"content" binding:"required"`
+	ParentID *int64 `json:"parent_id,omitempty"`
 }
 
 // UpdateCommentRequest represents comment update request
 type UpdateCommentRequest struct {
-	Content string `json:"content" binding:"required" example:"Updated comment text"`
+	Content string `json:"content" binding:"required"`
 }
 
 // SuccessResponse represents a successful API response
 type SuccessResponse struct {
-	Success bool `json:"success" example:"true"`
+	Success bool `json:"success"`
 	Data    any  `json:"data,omitempty"`
 	Meta    any  `json:"meta,omitempty"`
 }
 
 // ErrorResponse represents an error API response
 type ErrorResponse struct {
-	Success bool       `json:"success" example:"false"`
+	Success bool       `json:"success"`
 	Error   *ErrorData `json:"error"`
 }
 
