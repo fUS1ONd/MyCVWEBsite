@@ -40,43 +40,74 @@ curriculum_vitae/
 
 ### Предварительные требования
 
-- Go 1.22+
-- Node.js 20+
 - Docker и Docker Compose
 - Make
+- Go 1.22+ (опционально, для локальной разработки)
+- Node.js 20+ (опционально, для локальной разработки)
 
-### Установка и запуск
+### Автоматический запуск (рекомендуется)
 
-1. **Клонировать репозиторий:**
+Запустить **весь проект одной командой**:
+
 ```bash
-git clone <repository-url>
-cd curriculum_vitae
+make dev
 ```
 
-2. **Запустить все сервисы с Docker Compose:**
+Эта команда автоматически:
+- ✅ Запустит Docker контейнеры (PostgreSQL, Backend, Frontend)
+- ✅ Применит миграции базы данных
+- ✅ Заполнит тестовыми данными (если есть)
+- ✅ Настроит окружение для разработки
+
+После запуска:
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8080
+- **PostgreSQL**: localhost:5432
+
+### Альтернативные способы
+
+#### Вариант 1: Пошаговый запуск
+
 ```bash
+# 1. Запустить Docker контейнеры
 make docker-up
+
+# 2. Применить миграции
+make migrate-up
+
+# 3. (Опционально) Заполнить тестовыми данными
+make seed
 ```
 
-Это запустит:
-- Backend API на http://localhost:8080
-- Frontend dev server на http://localhost:5173
-- PostgreSQL на localhost:5432
+#### Вариант 2: Локальная разработка (без Docker)
 
-3. **Или запустить локально без Docker:**
-
-**Backend:**
 ```bash
+# Запустить только PostgreSQL через Docker
+docker compose up db -d
+
+# Применить миграции
+make migrate-up
+
+# Запустить backend (в одном терминале)
 make backend-run
-# или
-cd backend && go run cmd/app/main.go
+
+# Запустить frontend (в другом терминале)
+make frontend-dev
 ```
 
-**Frontend:**
+### Проверка работоспособности
+
+После запуска проверьте:
+
 ```bash
-make frontend-dev
-# или
-cd frontend && npm run dev
+# Backend health
+curl http://localhost:8080/health
+
+# API профиля
+curl http://localhost:8080/api/v1/profile
+
+# Откройте в браузере
+open http://localhost:5173
 ```
 
 ## 🔍 Code Quality & Linting
@@ -184,12 +215,26 @@ npm run format            # Prettier --write
 
 ## 📝 Доступные команды
 
-### Общие команды
+### Разработка
 ```bash
-make build              # Собрать backend и frontend
-make test               # Запустить все тесты
-make lint               # Запустить все линтеры
-make clean              # Очистить build артефакты
+make dev                # 🚀 Запустить ВСЁ автоматически (Docker + миграции + seed)
+make dev-setup          # То же самое (алиас)
+```
+
+### Docker команды
+```bash
+make docker-up          # Поднять все сервисы
+make docker-down        # Остановить все сервисы
+docker compose logs -f  # Просмотр логов
+docker compose restart  # Перезапустить сервисы
+```
+
+### База данных
+```bash
+make migrate-up         # Применить миграции
+make migrate-down       # Откатить последнюю миграцию
+make migrate-create     # Создать новую миграцию
+make seed               # Заполнить тестовыми данными
 ```
 
 ### Backend команды
@@ -206,12 +251,15 @@ make frontend-install   # Установить npm зависимости
 make frontend-dev       # Запустить dev server
 make frontend-build     # Собрать production build
 make frontend-lint      # Запустить ESLint и Prettier проверки
+make frontend-format    # Отформатировать код
 ```
 
-### Docker команды
+### Общие команды
 ```bash
-make docker-up          # Поднять все сервисы
-make docker-down        # Остановить все сервисы
+make build              # Собрать backend и frontend
+make test               # Запустить все тесты
+make lint               # Запустить все линтеры
+make clean              # Очистить build артефакты
 ```
 
 ## 🏗 Структура проекта
@@ -282,6 +330,34 @@ DATABASE_URL=postgres://postgres:postgres@localhost:5432/pwp_db?sslmode=disable
 
 ## 🔧 Troubleshooting
 
+### PostgreSQL не запускается
+```bash
+docker compose down -v  # Удалить volumes
+make dev                # Запустить заново
+```
+
+### Миграции не применяются
+
+**Если `make migrate-up` выдает ошибку "migrate: not found":**
+
+```bash
+# Установить migrate CLI
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+# Добавить в PATH
+export PATH="$HOME/go/bin:$PATH"
+
+# ИЛИ использовать через Docker (автоматически при make dev)
+```
+
+### Frontend не собирается
+```bash
+cd frontend
+rm -rf node_modules package-lock.json
+npm install
+npm run dev
+```
+
 ### Pre-commit hooks ошибка с nodeenv
 
 **Проблема:** `IndexError: list index out of range` при запуске pre-commit
@@ -304,13 +380,20 @@ export PATH=$PATH:$(go env GOPATH)/bin
 echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.bashrc
 ```
 
-### Go version несовместимость
+### Порты уже заняты
 
-**Проблема:** Ошибки при установке golangci-lint с Go 1.25
+**Проблема:** Ошибка `port is already allocated`
 
-**Решение:** Используйте `@latest` вместо конкретной версии:
+**Решение:**
 ```bash
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+# Проверить какие порты используются
+docker compose ps
+lsof -i :8080  # Backend
+lsof -i :5173  # Frontend
+lsof -i :5432  # PostgreSQL
+
+# Остановить конфликтующие сервисы
+make docker-down
 ```
 
 ## 🧪 Тестирование

@@ -57,6 +57,13 @@ docker-up:
 docker-down:
 	docker compose down
 
+# Development setup (Docker + Migrations + Seed)
+dev-setup:
+	@bash scripts/dev-setup.sh
+
+# Quick dev start (alias)
+dev: dev-setup
+
 # Shortcut commands
 build: backend-build frontend-build
 
