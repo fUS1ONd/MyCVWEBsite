@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -345,6 +346,33 @@ func TestCommentService_DeleteComment(t *testing.T) {
 			wantErr:     true,
 			errContains: "permission denied",
 		},
+		{
+			name:      "error - comment already deleted",
+			commentID: 1,
+			userID:    1,
+			isAdmin:   false,
+			setupMock: func(m *MockCommentRepository) {
+				deletedAt := time.Now()
+				m.On("GetByID", mock.Anything, 1).Return(&domain.Comment{
+					ID:        1,
+					UserID:    1,
+					DeletedAt: &deletedAt,
+				}, nil)
+			},
+			wantErr:     true,
+			errContains: "comment already deleted",
+		},
+		{
+			name:      "error - comment not found",
+			commentID: 999,
+			userID:    1,
+			isAdmin:   false,
+			setupMock: func(m *MockCommentRepository) {
+				m.On("GetByID", mock.Anything, 999).Return(nil, nil)
+			},
+			wantErr:     true,
+			errContains: "comment not found",
+		},
 	}
 
 	for _, tt := range tests {
@@ -366,6 +394,182 @@ func TestCommentService_DeleteComment(t *testing.T) {
 			}
 
 			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestCommentService_GetCommentByID(t *testing.T) {
+	tests := []struct {
+		name        string
+		commentID   int
+		setupMock   func(*MockCommentRepository)
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:      "success - comment found",
+			commentID: 1,
+			setupMock: func(m *MockCommentRepository) {
+				m.On("GetByID", mock.Anything, 1).Return(&domain.Comment{
+					ID:      1,
+					PostID:  1,
+					UserID:  1,
+					Content: "Great comment",
+				}, nil)
+			},
+			wantErr: false,
+		},
+		{
+			name:      "error - comment not found",
+			commentID: 999,
+			setupMock: func(m *MockCommentRepository) {
+				m.On("GetByID", mock.Anything, 999).Return(nil, nil)
+			},
+			wantErr:     true,
+			errContains: "comment not found",
+		},
+		{
+			name:      "error - repository error",
+			commentID: 1,
+			setupMock: func(m *MockCommentRepository) {
+				m.On("GetByID", mock.Anything, 1).Return(nil, errors.New("database connection failed"))
+			},
+			wantErr:     true,
+			errContains: "failed to get comment",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCommentRepo := new(MockCommentRepository)
+			mockPostRepo := new(MockPostRepository)
+			tt.setupMock(mockCommentRepo)
+
+			service := NewCommentService(mockCommentRepo, mockPostRepo)
+			comment, err := service.GetCommentByID(context.Background(), tt.commentID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errContains != "" {
+					assert.Contains(t, err.Error(), tt.errContains)
+				}
+				assert.Nil(t, comment)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, comment)
+				assert.Equal(t, tt.commentID, comment.ID)
+			}
+
+			mockCommentRepo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
+	tests := []struct {
+		name             string
+		postSlug         string
+		setupPostMock    func(*MockPostRepository)
+		setupCommentMock func(*MockCommentRepository)
+		wantErr          bool
+		errContains      string
+		expectedCount    int
+	}{
+		{
+			name:     "success - comments found",
+			postSlug: "test-post",
+			setupPostMock: func(m *MockPostRepository) {
+				m.On("GetBySlug", mock.Anything, "test-post").Return(&domain.Post{
+					ID:   1,
+					Slug: "test-post",
+				}, nil)
+			},
+			setupCommentMock: func(m *MockCommentRepository) {
+				m.On("GetByPostID", mock.Anything, 1).Return([]domain.Comment{
+					{ID: 1, PostID: 1, UserID: 1, Content: "First comment"},
+					{ID: 2, PostID: 1, UserID: 2, Content: "Second comment"},
+					{ID: 3, PostID: 1, UserID: 1, Content: "Reply to first", ParentID: intPtr(1)},
+				}, nil)
+			},
+			wantErr:       false,
+			expectedCount: 3,
+		},
+		{
+			name:     "success - no comments for post",
+			postSlug: "empty-post",
+			setupPostMock: func(m *MockPostRepository) {
+				m.On("GetBySlug", mock.Anything, "empty-post").Return(&domain.Post{
+					ID:   2,
+					Slug: "empty-post",
+				}, nil)
+			},
+			setupCommentMock: func(m *MockCommentRepository) {
+				m.On("GetByPostID", mock.Anything, 2).Return([]domain.Comment{}, nil)
+			},
+			wantErr:       false,
+			expectedCount: 0,
+		},
+		{
+			name:     "error - post not found",
+			postSlug: "non-existent",
+			setupPostMock: func(m *MockPostRepository) {
+				m.On("GetBySlug", mock.Anything, "non-existent").Return(nil, nil)
+			},
+			setupCommentMock: func(m *MockCommentRepository) {},
+			wantErr:          true,
+			errContains:      "post not found",
+		},
+		{
+			name:     "error - post repository error",
+			postSlug: "error-post",
+			setupPostMock: func(m *MockPostRepository) {
+				m.On("GetBySlug", mock.Anything, "error-post").Return(nil, errors.New("database error"))
+			},
+			setupCommentMock: func(m *MockCommentRepository) {},
+			wantErr:          true,
+			errContains:      "failed to get post",
+		},
+		{
+			name:     "error - comment repository error",
+			postSlug: "test-post",
+			setupPostMock: func(m *MockPostRepository) {
+				m.On("GetBySlug", mock.Anything, "test-post").Return(&domain.Post{
+					ID:   1,
+					Slug: "test-post",
+				}, nil)
+			},
+			setupCommentMock: func(m *MockCommentRepository) {
+				m.On("GetByPostID", mock.Anything, 1).Return([]domain.Comment{}, errors.New("database error"))
+			},
+			wantErr:     true,
+			errContains: "failed to get comments",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPostRepo := new(MockPostRepository)
+			mockCommentRepo := new(MockCommentRepository)
+			tt.setupPostMock(mockPostRepo)
+			tt.setupCommentMock(mockCommentRepo)
+
+			service := NewCommentService(mockCommentRepo, mockPostRepo)
+			comments, err := service.GetCommentsByPostSlug(context.Background(), tt.postSlug)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errContains != "" {
+					assert.Contains(t, err.Error(), tt.errContains)
+				}
+				assert.Nil(t, comments)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, comments)
+				assert.Len(t, comments, tt.expectedCount)
+			}
+
+			mockPostRepo.AssertExpectations(t)
+			mockCommentRepo.AssertExpectations(t)
 		})
 	}
 }

@@ -384,29 +384,231 @@ func TestPostService_DeletePost(t *testing.T) {
 }
 
 func TestPostService_ListPosts(t *testing.T) {
-	mockRepo := new(MockPostRepository)
-
-	request := &domain.ListPostsRequest{
-		Page:  1,
-		Limit: 10,
+	tests := []struct {
+		name        string
+		request     *domain.ListPostsRequest
+		setupMock   func(*MockPostRepository)
+		wantErr     bool
+		checkResult func(*testing.T, *domain.PostsListResponse)
+	}{
+		{
+			name: "success - default pagination",
+			request: &domain.ListPostsRequest{
+				Page:  1,
+				Limit: 10,
+			},
+			setupMock: func(m *MockPostRepository) {
+				m.On("List", mock.Anything, mock.Anything).Return([]domain.Post{
+					{ID: 1, Title: "Post 1", Slug: "post-1"},
+					{ID: 2, Title: "Post 2", Slug: "post-2"},
+				}, 2, nil)
+			},
+			wantErr: false,
+			checkResult: func(t *testing.T, result *domain.PostsListResponse) {
+				assert.Len(t, result.Posts, 2)
+				assert.Equal(t, 2, result.TotalCount)
+				assert.Equal(t, 1, result.TotalPages)
+			},
+		},
+		{
+			name: "success - custom pagination values",
+			request: &domain.ListPostsRequest{
+				Page:  3,
+				Limit: 20,
+			},
+			setupMock: func(m *MockPostRepository) {
+				m.On("List", mock.Anything, mock.MatchedBy(func(req *domain.ListPostsRequest) bool {
+					return req.Page == 3 && req.Limit == 20
+				})).Return([]domain.Post{
+					{ID: 41, Title: "Post 41", Slug: "post-41"},
+				}, 50, nil)
+			},
+			wantErr: false,
+			checkResult: func(t *testing.T, result *domain.PostsListResponse) {
+				assert.Equal(t, 3, result.Page)
+				assert.Equal(t, 20, result.Limit)
+				assert.Equal(t, 50, result.TotalCount)
+				assert.Equal(t, 3, result.TotalPages) // 50/20 = 3 pages
+			},
+		},
+		{
+			name: "success - calculate total pages correctly",
+			request: &domain.ListPostsRequest{
+				Page:  2,
+				Limit: 5,
+			},
+			setupMock: func(m *MockPostRepository) {
+				m.On("List", mock.Anything, mock.Anything).Return([]domain.Post{}, 23, nil)
+			},
+			wantErr: false,
+			checkResult: func(t *testing.T, result *domain.PostsListResponse) {
+				assert.Equal(t, 23, result.TotalCount)
+				assert.Equal(t, 5, result.TotalPages) // 23/5 = 5 pages
+			},
+		},
+		{
+			name: "error - repository error",
+			request: &domain.ListPostsRequest{
+				Page:  1,
+				Limit: 10,
+			},
+			setupMock: func(m *MockPostRepository) {
+				m.On("List", mock.Anything, mock.Anything).Return([]domain.Post{}, 0, errors.New("db error"))
+			},
+			wantErr: true,
+		},
 	}
 
-	posts := []domain.Post{
-		{ID: 1, Title: "Post 1", Slug: "post-1"},
-		{ID: 2, Title: "Post 2", Slug: "post-2"},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := new(MockPostRepository)
+			tt.setupMock(mockRepo)
+
+			service := NewPostService(mockRepo)
+			result, err := service.ListPosts(context.Background(), tt.request)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, result)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, result)
+				if tt.checkResult != nil {
+					tt.checkResult(t, result)
+				}
+			}
+
+			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestPostService_GetPostByID(t *testing.T) {
+	tests := []struct {
+		name        string
+		postID      int
+		setupMock   func(*MockPostRepository)
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:   "success - post found",
+			postID: 1,
+			setupMock: func(m *MockPostRepository) {
+				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+					ID:    1,
+					Title: "Test Post",
+					Slug:  "test-post",
+				}, nil)
+			},
+			wantErr: false,
+		},
+		{
+			name:   "error - post not found",
+			postID: 999,
+			setupMock: func(m *MockPostRepository) {
+				m.On("GetByID", mock.Anything, 999).Return(nil, nil)
+			},
+			wantErr:     true,
+			errContains: "post not found",
+		},
+		{
+			name:   "error - repository error",
+			postID: 1,
+			setupMock: func(m *MockPostRepository) {
+				m.On("GetByID", mock.Anything, 1).Return(nil, errors.New("database connection failed"))
+			},
+			wantErr:     true,
+			errContains: "failed to get post",
+		},
 	}
 
-	mockRepo.On("List", mock.Anything, request).Return(posts, 2, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := new(MockPostRepository)
+			tt.setupMock(mockRepo)
 
-	service := NewPostService(mockRepo)
-	result, err := service.ListPosts(context.Background(), request)
+			service := NewPostService(mockRepo)
+			post, err := service.GetPostByID(context.Background(), tt.postID)
 
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Len(t, result.Posts, 2)
-	assert.Equal(t, 2, result.TotalCount)
-	assert.Equal(t, 1, result.Page)
-	assert.Equal(t, 1, result.TotalPages)
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errContains != "" {
+					assert.Contains(t, err.Error(), tt.errContains)
+				}
+				assert.Nil(t, post)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, post)
+				assert.Equal(t, tt.postID, post.ID)
+			}
 
-	mockRepo.AssertExpectations(t)
+			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestPostService_GetPostBySlug(t *testing.T) {
+	tests := []struct {
+		name        string
+		slug        string
+		setupMock   func(*MockPostRepository)
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "success - post found by slug",
+			slug: "my-awesome-post",
+			setupMock: func(m *MockPostRepository) {
+				m.On("GetBySlug", mock.Anything, "my-awesome-post").Return(&domain.Post{
+					ID:    5,
+					Title: "My Awesome Post",
+					Slug:  "my-awesome-post",
+				}, nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "error - post not found",
+			slug: "non-existent-slug",
+			setupMock: func(m *MockPostRepository) {
+				m.On("GetBySlug", mock.Anything, "non-existent-slug").Return(nil, nil)
+			},
+			wantErr:     true,
+			errContains: "post not found",
+		},
+		{
+			name: "error - repository error",
+			slug: "test-slug",
+			setupMock: func(m *MockPostRepository) {
+				m.On("GetBySlug", mock.Anything, "test-slug").Return(nil, errors.New("db connection lost"))
+			},
+			wantErr:     true,
+			errContains: "failed to get post",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := new(MockPostRepository)
+			tt.setupMock(mockRepo)
+
+			service := NewPostService(mockRepo)
+			post, err := service.GetPostBySlug(context.Background(), tt.slug)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errContains != "" {
+					assert.Contains(t, err.Error(), tt.errContains)
+				}
+				assert.Nil(t, post)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, post)
+				assert.Equal(t, tt.slug, post.Slug)
+			}
+
+			mockRepo.AssertExpectations(t)
+		})
+	}
 }
