@@ -5,3 +5,4 @@ export { Modal, ModalFooter } from './Modal';
 export { Spinner, PageSpinner } from './Spinner';
 export { ErrorBoundary } from './ErrorBoundary';
 export { SEO } from './SEO';
+export { Pagination } from './Pagination';

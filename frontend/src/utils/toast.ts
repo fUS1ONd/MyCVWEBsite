@@ -1,8 +1,11 @@
-import toast from 'react-hot-toast';
+import toastLib from 'react-hot-toast';
+
+// Re-export toast for direct usage
+export const toast = toastLib;
 
 // Success toast
 export const showSuccess = (message: string): void => {
-  toast.success(message, {
+  toastLib.success(message, {
     duration: 3000,
     position: 'top-right',
   });
@@ -10,7 +13,7 @@ export const showSuccess = (message: string): void => {
 
 // Error toast
 export const showError = (message: string): void => {
-  toast.error(message, {
+  toastLib.error(message, {
     duration: 4000,
     position: 'top-right',
   });
@@ -18,7 +21,7 @@ export const showError = (message: string): void => {
 
 // Info toast
 export const showInfo = (message: string): void => {
-  toast(message, {
+  toastLib(message, {
     duration: 3000,
     position: 'top-right',
     icon: 'ℹ️',
@@ -27,19 +30,19 @@ export const showInfo = (message: string): void => {
 
 // Loading toast (returns toast id for dismissal)
 export const showLoading = (message: string): string => {
-  return toast.loading(message, {
+  return toastLib.loading(message, {
     position: 'top-right',
   });
 };
 
 // Dismiss specific toast
 export const dismissToast = (toastId: string): void => {
-  toast.dismiss(toastId);
+  toastLib.dismiss(toastId);
 };
 
 // Dismiss all toasts
 export const dismissAllToasts = (): void => {
-  toast.dismiss();
+  toastLib.dismiss();
 };
 
 // Promise toast - automatically shows loading/success/error
@@ -51,7 +54,7 @@ export const toastPromise = <T>(
     error: string;
   }
 ): Promise<T> => {
-  return toast.promise(
+  return toastLib.promise(
     promise,
     {
       loading: messages.loading,

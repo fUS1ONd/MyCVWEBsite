@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from '../components/layout';
 import { ProtectedRoute, AdminRoute } from '../components/auth';
 import { HomePage, LoginPage, BlogPage, NotFoundPage } from '../pages';
+import { PostDetailPage } from '../pages/PostDetailPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -19,6 +20,14 @@ export const AppRoutes: React.FC = () => {
             element={
               <ProtectedRoute>
                 <BlogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/blog/:slug"
+            element={
+              <ProtectedRoute>
+                <PostDetailPage />
               </ProtectedRoute>
             }
           />
