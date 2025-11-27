@@ -74,6 +74,17 @@ services:
       timeout: 5s
       retries: 5
 
+  migrator:
+    image: migrate/migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/migrations:/migrations
+    command: ["-path", "/migrations", "-database", "postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable", "up"]
+    networks:
+      - pwp-network
+
 volumes:
   pg_data:
 
