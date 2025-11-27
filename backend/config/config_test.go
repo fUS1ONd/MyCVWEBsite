@@ -21,6 +21,20 @@ database:
   url: "postgres://user:pass@localhost:5432/db"
 profile:
   name: "Test User"
+auth:
+  session_secret: "test-secret-key"
+  session_max_age: "24h"
+oauth:
+  base_url: "http://localhost:8080"
+  google:
+    client_id: "test-google-id"
+    client_secret: "test-google-secret"
+  github:
+    client_id: "test-github-id"
+    client_secret: "test-github-secret"
+  vk:
+    client_id: "test-vk-id"
+    client_secret: "test-vk-secret"
 `)
 
 	tmpfile, err := os.CreateTemp("", "config-*.yaml")

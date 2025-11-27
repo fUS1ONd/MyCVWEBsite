@@ -188,13 +188,13 @@
 - [x] Реализовать soft delete для комментариев (deleted_at)
 
 ### 4.4 Общие задачи API
-- [ ] Добавить middleware для логирования всех запросов
-- [ ] Добавить middleware для CORS (настраиваемые origins)
-- [ ] Реализовать стандартизированные JSON responses (success/error format)
-- [ ] Добавить валидацию request body с понятными error messages
-- [ ] Реализовать rate limiting middleware (по IP и по user_id)
-- [ ] Добавить middleware для panic recovery
-- [ ] Создать OpenAPI/Swagger документацию для API
+- [x] Добавить middleware для логирования всех запросов
+- [x] Добавить middleware для CORS (настраиваемые origins)
+- [x] Реализовать стандартизированные JSON responses (success/error format)
+- [x] Добавить валидацию request body с понятными error messages
+- [x] Реализовать rate limiting middleware (по IP)
+- [x] Добавить middleware для panic recovery (уже было через chi middleware.Recoverer)
+- [x] Создать OpenAPI/Swagger документацию для API (базовая версия с key endpoints)
 - [ ] Написать integration тесты для всех endpoints
 
 **Критерии завершения:**

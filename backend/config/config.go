@@ -17,6 +17,8 @@ type Config struct {
 	Profile    ProfileConfig `yaml:"profile"`
 	Auth       Auth          `yaml:"auth"`
 	OAuth      OAuth         `yaml:"oauth"`
+	CORS       CORS          `yaml:"cors"`
+	RateLimit  RateLimit     `yaml:"rate_limit"`
 }
 
 // HTTPServer represents HTTP server configuration
@@ -69,6 +71,24 @@ type OAuthProvider struct {
 	ClientID     string `yaml:"client_id" env-required:"true"`
 	ClientSecret string `yaml:"client_secret" env-required:"true"`
 	Enabled      bool   `yaml:"enabled" env-default:"false"`
+}
+
+// CORS represents CORS configuration
+type CORS struct {
+	Enabled        bool     `yaml:"enabled" env-default:"true"`
+	AllowedOrigins []string `yaml:"allowed_origins" env-default:"*"`
+	AllowedMethods []string `yaml:"allowed_methods" env-default:"GET,POST,PUT,DELETE,OPTIONS"`
+	AllowedHeaders []string `yaml:"allowed_headers" env-default:"Accept,Authorization,Content-Type,X-CSRF-Token"`
+	ExposedHeaders []string `yaml:"exposed_headers" env-default:"Link"`
+	AllowedCreds   bool     `yaml:"allowed_credentials" env-default:"true"`
+	MaxAge         int      `yaml:"max_age" env-default:"300"`
+}
+
+// RateLimit represents rate limiting configuration
+type RateLimit struct {
+	Enabled       bool `yaml:"enabled" env-default:"true"`
+	RequestsLimit int  `yaml:"requests_limit" env-default:"100"` // requests per window
+	WindowSeconds int  `yaml:"window_seconds" env-default:"60"`  // time window in seconds
 }
 
 // MustLoad loads configuration from file or panics if unable to load

@@ -1,0 +1,233 @@
+basePath: /
+definitions:
+  internal_transport_http.ContactsResponse:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      github:
+        example: https://github.com/johndoe
+        type: string
+      linkedin:
+        example: https://linkedin.com/in/johndoe
+        type: string
+    type: object
+  internal_transport_http.ErrorData:
+    properties:
+      code:
+        type: string
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+  internal_transport_http.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/internal_transport_http.ErrorData'
+      success:
+        example: false
+        type: boolean
+    type: object
+  internal_transport_http.HealthResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  internal_transport_http.MetaData:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_count:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  internal_transport_http.ProfileResponse:
+    properties:
+      activity:
+        example: Building awesome products
+        type: string
+      contacts:
+        $ref: '#/definitions/internal_transport_http.ContactsResponse'
+      description:
+        example: Senior Software Engineer
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: John Doe
+        type: string
+      photo_url:
+        example: https://example.com/photo.jpg
+        type: string
+    type: object
+  internal_transport_http.ReadinessResponse:
+    properties:
+      checks:
+        additionalProperties:
+          type: string
+        type: object
+      ready:
+        type: boolean
+      status:
+        type: string
+      version:
+        type: string
+    type: object
+  internal_transport_http.Response:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/internal_transport_http.ErrorData'
+      meta:
+        $ref: '#/definitions/internal_transport_http.MetaData'
+      success:
+        type: boolean
+    type: object
+  internal_transport_http.UpdateProfileRequest:
+    properties:
+      activity:
+        example: Building products
+        type: string
+      description:
+        example: Senior Engineer
+        type: string
+      email:
+        example: john@example.com
+        type: string
+      github:
+        example: https://github.com/johndoe
+        type: string
+      linkedin:
+        example: https://linkedin.com/in/johndoe
+        type: string
+      name:
+        example: John Doe
+        type: string
+      photo_url:
+        example: https://example.com/photo.jpg
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+  description: API for personal website with CV page and AI Blog
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Personal Web Platform API
+  version: "1.0"
+paths:
+  /api/v1/admin/profile:
+    put:
+      consumes:
+      - application/json
+      description: Update CV/profile information (admin only)
+      parameters:
+      - description: Profile update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_transport_http.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_transport_http.ProfileResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_transport_http.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_transport_http.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_transport_http.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_transport_http.ErrorResponse'
+      security:
+      - CookieAuth: []
+      summary: Update profile information
+      tags:
+      - Profile
+  /api/v1/profile:
+    get:
+      description: Get public CV/profile information (accessible to everyone)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_transport_http.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_transport_http.ProfileResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_transport_http.ErrorResponse'
+      summary: Get profile information
+      tags:
+      - Profile
+  /health:
+    get:
+      description: Check if the service is alive (liveness probe)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http.HealthResponse'
+      summary: Health check
+      tags:
+      - Health
+  /ready:
+    get:
+      description: Check if the service is ready to accept traffic (readiness probe)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http.ReadinessResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/internal_transport_http.ReadinessResponse'
+      summary: Readiness check
+      tags:
+      - Health
+securityDefinitions:
+  CookieAuth:
+    description: Session cookie authentication
+    in: cookie
+    name: session_id
+    type: apiKey
+swagger: "2.0"

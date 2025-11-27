@@ -20,7 +20,13 @@ type ReadinessResponse struct {
 }
 
 // health handles basic health check (liveness probe)
-// Returns 200 OK if the service is alive
+//
+//	@Summary		Health check
+//	@Description	Check if the service is alive (liveness probe)
+//	@Tags			Health
+//	@Produce		json
+//	@Success		200	{object}	HealthResponse
+//	@Router			/health [get]
 func (h *Handler) health(w http.ResponseWriter, r *http.Request) {
 	response := HealthResponse{
 		Status: "ok",
@@ -35,8 +41,14 @@ func (h *Handler) health(w http.ResponseWriter, r *http.Request) {
 }
 
 // ready handles readiness check
-// Returns 200 OK if the service is ready to accept traffic
-// Checks database connectivity
+//
+//	@Summary		Readiness check
+//	@Description	Check if the service is ready to accept traffic (readiness probe)
+//	@Tags			Health
+//	@Produce		json
+//	@Success		200	{object}	ReadinessResponse
+//	@Failure		503	{object}	ReadinessResponse
+//	@Router			/ready [get]
 func (h *Handler) ready(w http.ResponseWriter, r *http.Request) {
 	checks := make(map[string]string)
 	ready := true

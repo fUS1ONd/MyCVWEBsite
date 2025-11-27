@@ -1,4 +1,25 @@
 // Package main is the entry point of the application
+//
+//	@title			Personal Web Platform API
+//	@version		1.0
+//	@description	API for personal website with CV page and AI Blog
+//	@termsOfService	http://swagger.io/terms/
+//
+//	@contact.name	API Support
+//	@contact.email	support@example.com
+//
+//	@license.name	MIT
+//	@license.url	https://opensource.org/licenses/MIT
+//
+//	@host		localhost:8080
+//	@BasePath	/
+//
+//	@securityDefinitions.apikey	CookieAuth
+//	@in							cookie
+//	@name						session_id
+//	@description				Session cookie authentication
+//
+//	@schemes	http https
 package main
 
 import (
