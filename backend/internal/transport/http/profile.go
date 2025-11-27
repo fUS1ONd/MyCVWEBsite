@@ -6,15 +6,7 @@ import (
 	"personal-web-platform/internal/domain"
 )
 
-// getProfile godoc
-//
-//	@Summary		Get profile information
-//	@Description	Get public CV/profile information (accessible to everyone)
-//	@Tags			Profile
-//	@Produce		json
-//	@Success		200	{object}	Response{data=ProfileResponse}
-//	@Failure		500	{object}	ErrorResponse
-//	@Router			/api/v1/profile [get]
+// getProfile handles profile retrieval
 func (h *Handler) getProfile(w http.ResponseWriter, r *http.Request) {
 	profile, err := h.services.Profile.GetProfile(r.Context())
 	if err != nil {
@@ -26,21 +18,7 @@ func (h *Handler) getProfile(w http.ResponseWriter, r *http.Request) {
 	RespondSuccess(w, ToProfileResponse(profile))
 }
 
-// updateProfile godoc
-//
-//	@Summary		Update profile information
-//	@Description	Update CV/profile information (admin only)
-//	@Tags			Profile
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		UpdateProfileRequest	true	"Profile update data"
-//	@Success		200		{object}	Response{data=ProfileResponse}
-//	@Failure		400		{object}	ErrorResponse
-//	@Failure		401		{object}	ErrorResponse
-//	@Failure		403		{object}	ErrorResponse
-//	@Failure		500		{object}	ErrorResponse
-//	@Security		CookieAuth
-//	@Router			/api/v1/admin/profile [put]
+// updateProfile handles profile updates (admin only)
 func (h *Handler) updateProfile(w http.ResponseWriter, r *http.Request) {
 	var req domain.UpdateProfileRequest
 

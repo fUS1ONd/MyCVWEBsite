@@ -6,12 +6,10 @@ import (
 	"net/http"
 
 	"personal-web-platform/config"
-	_ "personal-web-platform/docs" // Import generated swagger docs
 	"personal-web-platform/internal/service"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 // Handler aggregates all HTTP handlers
@@ -47,11 +45,6 @@ func (h *Handler) InitRoutes() http.Handler {
 	// Health checks (outside /api/v1 for easier access)
 	r.Get("/health", h.health)
 	r.Get("/ready", h.ready)
-
-	// Swagger documentation
-	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("/swagger/doc.json"),
-	))
 
 	// Auth routes
 	r.Route("/auth", func(r chi.Router) {
