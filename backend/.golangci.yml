@@ -1,3 +1,5 @@
+version: 2
+
 # golangci-lint configuration
 # See https://golangci-lint.run/usage/configuration/
 
@@ -16,39 +18,35 @@ output:
 linters:
   enable:
     # Essential linters
-    - errcheck # Check for unchecked errors
-    - gosimple # Simplify code
-    - govet # Vet examines Go source code
-    - ineffassign # Detect ineffectual assignments
-    - staticcheck # Static analysis checks
-    - typecheck # Type checking
-    - unused # Check for unused code
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
 
-    # Style linters
-    - gofmt # Check formatting
-    - goimports # Check import formatting
-    - misspell # Check for misspelled English words
-    - revive # Fast, configurable, extensible linter
+    # Style
+    - misspell
+    - revive
 
     # Bug detection
-    - bodyclose # Check HTTP response body closed
-    - gocritic # Opinionated Go linter
-    - gosec # Security checker
-    - nilerr # Find code that returns nil even if error is not nil
+    - bodyclose
+    - gocritic
+    - gosec
+    - nilerr
 
     # Performance
-    - prealloc # Find slice declarations that could be preallocated
+    - prealloc
 
     # Code quality
-    - gocyclo # Cyclomatic complexity
-    - dupl # Code clone detection
-    - goconst # Find repeated strings that could be constants
-    - unconvert # Remove unnecessary type conversions
+    - gocyclo
+    - dupl
+    - goconst
+    - unconvert
 
   disable:
-    - exhaustruct # Too strict for most cases
-    - varnamelen # Too opinionated
-    - wrapcheck # Too strict for error wrapping
+    - exhaustruct
+    - varnamelen
+    - wrapcheck
 
 linters-settings:
   errcheck:
@@ -58,8 +56,8 @@ linters-settings:
   govet:
     enable-all: true
     disable:
-      - shadow # Too strict
-      - fieldalignment # Prefer readability over minor memory optimization
+      - shadow
+      - fieldalignment
 
   gocyclo:
     min-complexity: 15
@@ -85,8 +83,8 @@ linters-settings:
 
   gosec:
     excludes:
-      - G104 # Audit errors not checked (covered by errcheck)
-      - G304 # File path from variable (needed for file operations)
+      - G104
+      - G304
 
 issues:
   exclude-use-default: false
@@ -94,27 +92,22 @@ issues:
   max-same-issues: 0
 
   exclude-rules:
-    # Exclude some linters from running on tests files
     - path: _test\.go
       linters:
         - dupl
         - gosec
         - goconst
 
-    # Exclude dupl from HTTP handlers (common patterns)
     - path: internal/transport/http/
       linters:
         - dupl
 
-    # Ignore magic numbers in tests and migrations
     - path: (_test\.go|migrations/)
       linters:
         - gomnd
 
-    # Ignore long lines in generated code
     - path: (\.pb\.go|wire_gen\.go)
       linters:
         - lll
 
-  # Show only new issues
   new: false
