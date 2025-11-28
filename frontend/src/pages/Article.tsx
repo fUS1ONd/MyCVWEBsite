@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axios';
@@ -10,124 +11,61 @@ import { format } from 'date-fns';
 import { ChevronLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-
-const mockPost: Post = {
-  id: 1,
-  title: 'Введение в современную веб-разработку',
-  slug: 'intro-to-modern-web-dev',
-  content: `# Современная веб-разработка
-
-Веб-разработка прошла долгий путь за последние годы. От простых HTML-страниц мы перешли к сложным, интерактивным приложениям, которые работают в браузере.
-
-## Ключевые технологии
-
-### React
-React произвел революцию в том, как мы создаем пользовательские интерфейсы. Компонентный подход позволяет создавать переиспользуемые блоки кода.
-
-### TypeScript
-TypeScript добавляет статическую типизацию к JavaScript, что делает код более надежным и легким в поддержке.
-
-### Современные инструменты
-- Vite для быстрой сборки
-- TanStack Query для управления состоянием сервера
-- Tailwind CSS для стилизации
-
-## Заключение
-Современная веб-разработка - это увлекательная область, которая постоянно развивается. Главное - не бояться пробовать новые технологии и подходы.`,
-  preview:
-    'Обзор современных технологий и подходов в веб-разработке. Узнайте о React, TypeScript, и лучших практиках.',
-  published: true,
-  author_id: 1,
-  author: {
-    id: 1,
-    email: 'alex@example.com',
-    name: 'Александр Петров',
-    role: 'admin',
-    created_at: new Date().toISOString(),
-  },
-  created_at: new Date('2024-01-15').toISOString(),
-  updated_at: new Date('2024-01-15').toISOString(),
-};
-
-const mockComments: Comment[] = [
-  {
-    id: 1,
-    content: 'Отличная статья! Очень понравился раздел про TypeScript.',
-    post_id: 1,
-    user_id: 2,
-    user: {
-      id: 2,
-      email: 'user@example.com',
-      name: 'Мария Иванова',
-      role: 'user',
-      created_at: new Date().toISOString(),
-    },
-    created_at: new Date('2024-01-16').toISOString(),
-    updated_at: new Date('2024-01-16').toISOString(),
-    replies: [
-      {
-        id: 2,
-        content: 'Спасибо за отзыв! Рад, что статья была полезной.',
-        post_id: 1,
-        user_id: 1,
-        parent_id: 1,
-        user: {
-          id: 1,
-          email: 'alex@example.com',
-          name: 'Александр Петров',
-          role: 'admin',
-          created_at: new Date().toISOString(),
-        },
-        created_at: new Date('2024-01-16').toISOString(),
-        updated_at: new Date('2024-01-16').toISOString(),
-      },
-    ],
-  },
-  {
-    id: 3,
-    content: 'Было бы интересно увидеть больше примеров кода с React hooks.',
-    post_id: 1,
-    user_id: 3,
-    user: {
-      id: 3,
-      email: 'dev@example.com',
-      name: 'Дмитрий Смирнов',
-      role: 'user',
-      created_at: new Date().toISOString(),
-    },
-    created_at: new Date('2024-01-17').toISOString(),
-    updated_at: new Date('2024-01-17').toISOString(),
-  },
-];
+import { useToast } from '@/hooks/use-toast';
 
 export default function Article() {
+  const { toast } = useToast();
   const { slug } = useParams<{ slug: string }>();
 
-  const { data: post, isLoading: postLoading } = useQuery({
+  const {
+    data: post,
+    isLoading: postLoading,
+    error: postError,
+  } = useQuery({
     queryKey: ['post', slug],
     queryFn: async () => {
-      try {
-        const response = await axiosInstance.get<Post>(`/api/v1/posts/${slug}`);
-        return response.data;
-      } catch (error) {
-        return mockPost;
-      }
+      const response = await axiosInstance.get<Post>(`/api/v1/posts/${slug}`);
+      return response.data;
     },
     enabled: !!slug,
   });
 
-  const { data: comments, isLoading: commentsLoading } = useQuery({
+  const {
+    data: comments,
+    isLoading: commentsLoading,
+    error: commentsError,
+  } = useQuery({
     queryKey: ['comments', slug],
     queryFn: async () => {
-      try {
-        const response = await axiosInstance.get<Comment[]>(`/api/v1/posts/${slug}/comments`);
-        return response.data;
-      } catch (error) {
-        return mockComments;
-      }
+      const response = await axiosInstance.get<Comment[]>(`/api/v1/posts/${slug}/comments`);
+      return response.data;
     },
     enabled: !!slug,
   });
+
+  useEffect(() => {
+    if (postError) {
+      toast({
+        title: 'Ошибка загрузки статьи',
+        description:
+          postError instanceof Error ? postError.message : 'Не удалось подключиться к серверу',
+        variant: 'destructive',
+      });
+    }
+  }, [postError, toast]);
+
+  useEffect(() => {
+    if (commentsError) {
+      toast({
+        title: 'Ошибка загрузки комментариев',
+        description:
+          commentsError instanceof Error
+            ? commentsError.message
+            : 'Не удалось загрузить комментарии',
+        variant: 'destructive',
+      });
+    }
+  }, [commentsError, toast]);
 
   if (postLoading) {
     return (
