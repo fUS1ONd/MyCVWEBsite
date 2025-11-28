@@ -49,7 +49,7 @@ func (h *Handler) authCallback(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect to frontend blog page
 	// User can now access protected routes with the session cookie
-	frontendURL := "http://localhost:5173/blog"
+	frontendURL := h.cfg.OAuth.FrontendURL + "/blog"
 	http.Redirect(w, r, frontendURL, http.StatusFound)
 }
 
