@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import axiosInstance from '@/lib/axios';
@@ -8,72 +8,32 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-const mockPosts: Post[] = [
-  {
-    id: 1,
-    title: 'Введение в современную веб-разработку',
-    slug: 'intro-to-modern-web-dev',
-    content:
-      '# Современная веб-разработка\n\nВеб-разработка прошла долгий путь за последние годы...',
-    preview:
-      'Обзор современных технологий и подходов в веб-разработке. Узнайте о React, TypeScript, и лучших практиках.',
-    published: true,
-    author_id: 1,
-    created_at: new Date('2024-01-15').toISOString(),
-    updated_at: new Date('2024-01-15').toISOString(),
-  },
-  {
-    id: 2,
-    title: 'Оптимизация производительности React приложений',
-    slug: 'react-performance-optimization',
-    content: '# Оптимизация React\n\nПроизводительность критична для пользовательского опыта...',
-    preview:
-      'Практические советы по улучшению производительности React приложений. Мемоизация, виртуализация и другие техники.',
-    published: true,
-    author_id: 1,
-    created_at: new Date('2024-01-10').toISOString(),
-    updated_at: new Date('2024-01-10').toISOString(),
-  },
-  {
-    id: 3,
-    title: 'TypeScript: От основ к продвинутым техникам',
-    slug: 'typescript-advanced-techniques',
-    content: '# TypeScript продвинутый уровень\n\nРазберем сложные паттерны TypeScript...',
-    preview:
-      'Глубокое погружение в TypeScript. Дженерики, условные типы, mapped types и другие продвинутые возможности.',
-    published: true,
-    author_id: 1,
-    created_at: new Date('2024-01-05').toISOString(),
-    updated_at: new Date('2024-01-05').toISOString(),
-  },
-];
-
-const mockData: PaginatedResponse<Post> = {
-  data: mockPosts,
-  page: 1,
-  limit: 10,
-  total: 3,
-  total_pages: 1,
-};
+import { useToast } from '@/hooks/use-toast';
 
 export default function Blog() {
+  const { toast } = useToast();
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['posts', page, limit],
     queryFn: async () => {
-      try {
-        const response = await axiosInstance.get<PaginatedResponse<Post>>(
-          `/api/v1/posts?page=${page}&limit=${limit}&published=true`
-        );
-        return response.data;
-      } catch (error) {
-        return mockData;
-      }
+      const response = await axiosInstance.get<PaginatedResponse<Post>>(
+        `/api/v1/posts?page=${page}&limit=${limit}&published=true`
+      );
+      return response.data;
     },
   });
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Ошибка загрузки постов',
+        description: error instanceof Error ? error.message : 'Не удалось подключиться к серверу',
+        variant: 'destructive',
+      });
+    }
+  }, [error, toast]);
 
   if (isLoading) {
     return (
