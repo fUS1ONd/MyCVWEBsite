@@ -3,13 +3,13 @@ package oauth
 
 import (
 	"personal-web-platform/config"
+	"personal-web-platform/internal/pkg/oauth/vkid"
 
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
-	"github.com/markbates/goth/providers/vk"
 )
 
 // InitProviders initializes OAuth providers based on config
@@ -38,9 +38,9 @@ func InitProviders(cfg *config.Config) {
 		))
 	}
 
-	// VK OAuth
+	// VK ID OAuth 2.1
 	if cfg.OAuth.VK.Enabled {
-		providers = append(providers, vk.New(
+		providers = append(providers, vkid.New(
 			cfg.OAuth.VK.ClientID,
 			cfg.OAuth.VK.ClientSecret,
 			cfg.OAuth.BaseURL+"/auth/vk/callback",

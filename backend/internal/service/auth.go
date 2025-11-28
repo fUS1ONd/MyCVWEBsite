@@ -46,6 +46,11 @@ func (s *authService) LoginWithOAuth(ctx context.Context, gothUser goth.User) (*
 
 	// If user doesn't exist, create new user
 	if user == nil {
+		// Validate that email is provided (required for VK ID)
+		if gothUser.Email == "" {
+			return nil, nil, fmt.Errorf("email permission required for authentication")
+		}
+
 		user, err = s.authRepo.CreateUser(ctx, gothUser.Email, domain.RoleUser)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create user: %w", err)
