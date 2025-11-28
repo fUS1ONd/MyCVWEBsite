@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" // Import postgres driver for migrations
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
@@ -59,21 +59,21 @@ func SetupTestDatabase(t *testing.T) *TestDatabase {
 
 	// Run migrations
 	if err := runMigrations(connStr); err != nil {
-		pgContainer.Terminate(ctx) //nolint:errcheck // cleanup
+		_ = pgContainer.Terminate(ctx) //nolint:errcheck,gosec // cleanup, error can be ignored
 		t.Fatalf("Failed to run migrations: %v", err)
 	}
 
 	// Create connection pool
 	pool, err := pgxpool.New(ctx, connStr)
 	if err != nil {
-		pgContainer.Terminate(ctx) //nolint:errcheck // cleanup
+		_ = pgContainer.Terminate(ctx) //nolint:errcheck,gosec // cleanup, error can be ignored
 		t.Fatalf("Failed to create connection pool: %v", err)
 	}
 
 	// Verify connection
 	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
-		pgContainer.Terminate(ctx) //nolint:errcheck // cleanup
+		_ = pgContainer.Terminate(ctx) //nolint:errcheck,gosec // cleanup, error can be ignored
 		t.Fatalf("Failed to ping database: %v", err)
 	}
 

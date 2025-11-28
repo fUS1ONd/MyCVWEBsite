@@ -1,7 +1,7 @@
 FROM golang:1.25-alpine
 
 # Install air for hot reload
-RUN go install github.com/cosmtrek/air@latest
+RUN go install github.com/air-verse/air@latest
 
 # Install wget for healthcheck and curl for golangci-lint
 RUN apk add --no-cache wget curl

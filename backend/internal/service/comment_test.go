@@ -122,7 +122,7 @@ func TestCommentService_CreateComment(t *testing.T) {
 			setupPostMock: func(m *MockPostRepository) {
 				m.On("GetByID", mock.Anything, 999).Return(nil, nil)
 			},
-			setupCommentMock: func(m *MockCommentRepository) {},
+			setupCommentMock: func(_ *MockCommentRepository) {},
 			wantErr:          true,
 			errContains:      "post not found",
 		},
@@ -515,7 +515,7 @@ func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
 			setupPostMock: func(m *MockPostRepository) {
 				m.On("GetBySlug", mock.Anything, "non-existent").Return(nil, nil)
 			},
-			setupCommentMock: func(m *MockCommentRepository) {},
+			setupCommentMock: func(_ *MockCommentRepository) {},
 			wantErr:          true,
 			errContains:      "post not found",
 		},
@@ -525,7 +525,7 @@ func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
 			setupPostMock: func(m *MockPostRepository) {
 				m.On("GetBySlug", mock.Anything, "error-post").Return(nil, errors.New("database error"))
 			},
-			setupCommentMock: func(m *MockCommentRepository) {},
+			setupCommentMock: func(_ *MockCommentRepository) {},
 			wantErr:          true,
 			errContains:      "failed to get post",
 		},

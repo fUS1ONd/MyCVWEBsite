@@ -81,7 +81,7 @@ func (s *commentService) CreateComment(ctx context.Context, postID int, req *dom
 	return createdComment, nil
 }
 
-func (s *commentService) UpdateComment(ctx context.Context, commentID int, req *domain.UpdateCommentRequest, userID int, isAdmin bool) (*domain.Comment, error) {
+func (s *commentService) UpdateComment(ctx context.Context, commentID int, req *domain.UpdateCommentRequest, userID int, _ bool) (*domain.Comment, error) { //nolint:revive // isAdmin reserved for future permission checks
 	// Validate request
 	if err := validator.Validate(req); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)

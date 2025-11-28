@@ -1,0 +1,50 @@
+import { Comment } from '@/lib/types';
+import { CommentItem } from './CommentItem';
+
+interface CommentThreadProps {
+  comment: Comment;
+  postSlug: string;
+  allComments: Comment[];
+  replyingTo: number | null;
+  setReplyingTo: (id: number | null) => void;
+  depth?: number;
+}
+
+export function CommentThread({
+  comment,
+  postSlug,
+  allComments,
+  replyingTo,
+  setReplyingTo,
+  depth = 0,
+}: CommentThreadProps) {
+  const replies = allComments.filter((c) => c.parent_id === comment.id);
+
+  return (
+    <div className="space-y-4">
+      <CommentItem
+        comment={comment}
+        postSlug={postSlug}
+        replyingTo={replyingTo}
+        setReplyingTo={setReplyingTo}
+        depth={depth}
+      />
+
+      {replies.length > 0 && (
+        <div className="ml-8 space-y-4 border-l-2 border-border pl-4">
+          {replies.map((reply) => (
+            <CommentThread
+              key={reply.id}
+              comment={reply}
+              postSlug={postSlug}
+              allComments={allComments}
+              replyingTo={replyingTo}
+              setReplyingTo={setReplyingTo}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

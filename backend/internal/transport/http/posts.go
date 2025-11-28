@@ -103,7 +103,7 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 }
 
 // updatePost handles PUT /api/v1/admin/posts/{id} - update existing post
-func (h *Handler) updatePost(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) updatePost(w http.ResponseWriter, r *http.Request) { //nolint:dupl // similar pattern to updateComment
 	// Get post ID from URL
 	postIDStr := chi.URLParam(r, "id")
 	postID, err := strconv.Atoi(postIDStr)

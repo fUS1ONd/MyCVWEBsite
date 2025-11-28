@@ -136,7 +136,7 @@ func (r *postRepo) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) {
+func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) { //nolint:dupl // similar to GetBySlug but different query
 	var post domain.Post
 	db := GetQueryEngine(ctx, r.db)
 
@@ -180,7 +180,7 @@ func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) {
 	return &post, nil
 }
 
-func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, error) {
+func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, error) { //nolint:dupl // similar to GetByID but different query
 	var post domain.Post
 	db := GetQueryEngine(ctx, r.db)
 

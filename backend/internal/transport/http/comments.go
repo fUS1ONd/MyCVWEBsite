@@ -79,7 +79,7 @@ func (h *Handler) createComment(w http.ResponseWriter, r *http.Request) {
 }
 
 // updateComment handles PUT /api/v1/comments/{id} - update existing comment
-func (h *Handler) updateComment(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) updateComment(w http.ResponseWriter, r *http.Request) { //nolint:dupl // similar pattern to updatePost
 	// Get comment ID from URL
 	commentIDStr := chi.URLParam(r, "id")
 	commentID, err := strconv.Atoi(commentIDStr)

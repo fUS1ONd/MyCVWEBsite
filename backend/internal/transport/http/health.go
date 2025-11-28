@@ -20,7 +20,7 @@ type ReadinessResponse struct {
 }
 
 // health handles basic health check (liveness probe)
-func (h *Handler) health(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) health(w http.ResponseWriter, _ *http.Request) { //nolint:revive // r unused in health check
 	response := HealthResponse{
 		Status: "ok",
 	}

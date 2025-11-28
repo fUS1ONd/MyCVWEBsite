@@ -94,7 +94,7 @@ type Repositories struct {
 }
 
 // NewRepositories creates a new Repositories instance with all implementations
-func NewRepositories(db *pgxpool.Pool, cfg *config.Config) *Repositories {
+func NewRepositories(db *pgxpool.Pool, _ *config.Config) *Repositories { //nolint:revive // cfg reserved for future use
 	return &Repositories{
 		Profile:    NewProfileRepo(db),
 		Auth:       NewAuthRepo(db),

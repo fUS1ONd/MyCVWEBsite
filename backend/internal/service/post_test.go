@@ -104,7 +104,7 @@ func TestPostService_CreatePost(t *testing.T) {
 				Published: false,
 			},
 			authorID:    1,
-			setupMock:   func(m *MockPostRepository) {},
+			setupMock:   func(_ *MockPostRepository) {},
 			wantErr:     true,
 			errContains: "validation failed",
 		},
@@ -483,7 +483,7 @@ func TestPostService_ListPosts(t *testing.T) {
 	}
 }
 
-func TestPostService_GetPostByID(t *testing.T) {
+func TestPostService_GetPostByID(t *testing.T) { //nolint:dupl // similar test pattern to GetPostBySlug
 	tests := []struct {
 		name        string
 		postID      int
@@ -548,7 +548,7 @@ func TestPostService_GetPostByID(t *testing.T) {
 	}
 }
 
-func TestPostService_GetPostBySlug(t *testing.T) {
+func TestPostService_GetPostBySlug(t *testing.T) { //nolint:dupl // similar test pattern to GetPostByID
 	tests := []struct {
 		name        string
 		slug        string
