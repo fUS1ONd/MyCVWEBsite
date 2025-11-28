@@ -8,16 +8,16 @@ export interface User {
 }
 
 export interface Profile {
+  id: number;
   name: string;
-  title?: string;
-  description?: string;
-  bio?: string;
-  avatar_url?: string;
-  github_url?: string;
-  linkedin_url?: string;
-  twitter_url?: string;
-  website_url?: string;
-  email?: string;
+  description: string;
+  photo_url?: string;
+  activity: string;
+  contacts: {
+    email: string;
+    github: string;
+    linkedin: string;
+  };
 }
 
 export interface Post {
