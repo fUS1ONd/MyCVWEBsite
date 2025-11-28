@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Layout } from '@/components/layout/Layout';
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 
 // Pages
 import Home from './pages/Home';
@@ -47,22 +48,27 @@ const App = () => (
                   </Layout>
                 }
               />
-              <Route
-                path="/blog"
-                element={
-                  <Layout>
-                    <Blog />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/blog/:slug"
-                element={
-                  <Layout>
-                    <Article />
-                  </Layout>
-                }
-              />
+
+              {/* Protected Blog Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route
+                  path="/blog"
+                  element={
+                    <Layout>
+                      <Blog />
+                    </Layout>
+                  }
+                />
+                <Route
+                  path="/blog/:slug"
+                  element={
+                    <Layout>
+                      <Article />
+                    </Layout>
+                  }
+                />
+              </Route>
+
               <Route
                 path="/login"
                 element={

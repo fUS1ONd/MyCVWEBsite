@@ -63,16 +63,14 @@ func (h *Handler) InitRoutes() http.Handler {
 		// Public endpoints
 		r.Get("/profile", h.getProfile)
 
-		// Posts endpoints
-		r.Get("/posts", h.listPosts)
-		r.Get("/posts/{slug}", h.getPostBySlug)
-
-		// Comments endpoints (public read)
-		r.Get("/posts/{slug}/comments", h.getCommentsByPostSlug)
-
 		// Protected endpoints (require authentication)
 		r.Group(func(r chi.Router) {
 			r.Use(h.AuthRequired)
+
+			// Posts endpoints
+			r.Get("/posts", h.listPosts)
+			r.Get("/posts/{slug}", h.getPostBySlug)
+			r.Get("/posts/{slug}/comments", h.getCommentsByPostSlug)
 
 			// Comments (authenticated users)
 			r.Post("/posts/{slug}/comments", h.createComment)
