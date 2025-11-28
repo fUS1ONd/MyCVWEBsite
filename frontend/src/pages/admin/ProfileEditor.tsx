@@ -76,59 +76,72 @@ export default function ProfileEditor() {
             <CardDescription>Your public profile details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input id="name" {...register('name')} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" {...register('title')} placeholder="e.g. Software Engineer" />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="name">Имя *</Label>
+              <Input id="name" {...register('name')} required placeholder="Ваше имя" />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Input id="description" {...register('description')} placeholder="A short tagline" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
+              <Label htmlFor="description">Описание *</Label>
               <Textarea
-                id="bio"
-                {...register('bio')}
-                placeholder="Tell us about yourself"
-                className="min-h-[120px]"
+                id="description"
+                {...register('description')}
+                placeholder="Краткое описание ваших навыков и специализации"
+                className="min-h-[100px]"
+                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="avatar_url">Avatar URL</Label>
-              <Input id="avatar_url" {...register('avatar_url')} type="url" />
+              <Label htmlFor="activity">Деятельность *</Label>
+              <Textarea
+                id="activity"
+                {...register('activity')}
+                placeholder="Расскажите о своей текущей деятельности и опыте"
+                className="min-h-[120px]"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="photo_url">URL фотографии</Label>
+              <Input
+                id="photo_url"
+                {...register('photo_url')}
+                type="url"
+                placeholder="https://..."
+              />
             </div>
 
             <div className="border-t pt-6">
-              <h3 className="text-sm font-medium mb-4">Social Links</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <h3 className="text-sm font-medium mb-4">Контакты</h3>
+              <div className="grid gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="github_url">GitHub</Label>
-                  <Input id="github_url" {...register('github_url')} type="url" />
+                  <Label htmlFor="contacts.email">Email *</Label>
+                  <Input
+                    id="contacts.email"
+                    {...register('contacts.email')}
+                    type="email"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="linkedin_url">LinkedIn</Label>
-                  <Input id="linkedin_url" {...register('linkedin_url')} type="url" />
+                  <Label htmlFor="contacts.github">GitHub</Label>
+                  <Input
+                    id="contacts.github"
+                    {...register('contacts.github')}
+                    type="url"
+                    placeholder="https://github.com/username"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="twitter_url">Twitter</Label>
-                  <Input id="twitter_url" {...register('twitter_url')} type="url" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website_url">Website</Label>
-                  <Input id="website_url" {...register('website_url')} type="url" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" {...register('email')} type="email" />
+                  <Label htmlFor="contacts.linkedin">LinkedIn</Label>
+                  <Input
+                    id="contacts.linkedin"
+                    {...register('contacts.linkedin')}
+                    type="url"
+                    placeholder="https://linkedin.com/in/username"
+                  />
                 </div>
               </div>
             </div>
