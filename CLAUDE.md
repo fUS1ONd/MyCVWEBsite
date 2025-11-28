@@ -257,26 +257,60 @@ Feat: Add authentication.
 
 ```
 curriculum_vitae/
-├── backend/          # Go backend application
-│   ├── cmd/         # Application entry points
-│   ├── internal/    # Private application code
-│   ├── config/      # Configuration files
-│   └── migrations/  # Database migrations
-├── frontend/         # React frontend application
-│   ├── src/         # Source code
-│   ├── public/      # Static assets
-│   └── package.json
+├── .claude/ # Настройки Claude
+├── .github/ # CI/CD workflows
+├── backend/ # Go backend application
+│ ├── cmd/app/ # Точка входа
+│ ├── config/ # Конфигурация
+│ ├── internal/ # Основной код
+│ │ ├── domain/ # Бизнес-сущности и ошибки
+│ │ ├── pkg/ # Общие пакеты (logger, oauth, validator)
+│ │ ├── repository/ # Работа с БД (Postgres)
+│ │ ├── service/ # Бизнес-логика
+│ │ ├── testutil/ # Утилиты для тестов (Testcontainers)
+│ │ └── transport/http/ # HTTP хендлеры и middleware
+│ ├── migrations/ # SQL миграции
+│ └── Dockerfile
+├── frontend/ # React frontend application
+│ ├── src/
+│ │ ├── components/ # UI компоненты (shadcn)
+│ │ ├── contexts/ # React contexts (Auth, Theme)
+│ │ ├── hooks/ # Кастомные хуки
+│ │ ├── lib/ # Утилиты и типы
+│ │ └── pages/ # Страницы приложения
+│ └── Dockerfile
 ├── docker-compose.yml
 ├── Makefile
-├── plan.md          # Development roadmap
-└── CLAUDE.md        # This file
+├── nginx.conf
+└── CLAUDE.md # This file
 ```
 
-### 5.4. Стиль кода (Code Style)
+### 5.4. Стек технологий (Tech Stack)
+
+**Backend:**
+
+- **Language**: Go 1.25
+- **Web Framework**: Chi
+- **Database**: PostgreSQL 15, pgx/v5
+- **Auth**: OAuth 2.0 (Google, GitHub), OAuth 2.1 (VK ID + PKCE)
+- **Testing**: Testcontainers, testify
+- **Tools**: golang-migrate, slog, cleanenv
+
+**Frontend:**
+
+- **Framework**: React 18, Vite
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui
+- **State**: TanStack Query (React Query)
+- **Forms**: React Hook Form, Zod
+- **Markdown**: react-markdown, remark-gfm
+
+### 5.5. Стиль кода (Code Style)
 
 #### Backend (Go)
 - Следовать [Effective Go](https://golang.org/doc/effective_go.html)
 - Использовать `gofmt` и `golangci-lint`
+- Обработка ошибок через wrapping: `fmt.Errorf("...: %w", err)`
 - Комментарии на английском
 
 #### Frontend (TypeScript/React)
@@ -284,9 +318,23 @@ curriculum_vitae/
 - Использовать ESLint и Prettier
 - Комментарии на английском
 - Функциональные компоненты + hooks
+- Строгая типизация
+
+---
+
+## 6. Основные команды (Commands)
+
+| Command | Description |
+|---------|-------------|
+| `make init` | Инициализация (копирование конфигов, git hooks) |
+| `make dev` | Запуск в Docker с Hot Reload |
+| `make logs` | Просмотр логов |
+| `make stop` | Остановка контейнеров |
+| `make reset` | Полный сброс (удаление контейнеров и томов БД) |
+| `make check` | Запуск линтеров (backend + frontend) |
 
 ---
 
 **Дата создания ТЗ:** 2025-11-24
-**Дата последнего обновления:** 2025-11-25
-**Версия:** 1.1
+**Дата последнего обновления:** 2025-12-01
+**Версия:** 1.2
