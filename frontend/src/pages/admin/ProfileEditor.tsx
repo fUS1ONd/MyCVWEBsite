@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import axiosInstance from '@/lib/axios';
-import { Profile } from '@/lib/types';
+import { Profile, ApiResponse } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,8 +16,8 @@ export default function ProfileEditor() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['admin', 'profile'],
     queryFn: async () => {
-      const response = await axiosInstance.get<Profile>('/api/v1/profile');
-      return response.data;
+      const response = await axiosInstance.get<ApiResponse<Profile>>('/api/v1/profile');
+      return response.data.data;
     },
   });
 

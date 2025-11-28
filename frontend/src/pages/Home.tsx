@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axios';
-import { Profile } from '@/lib/types';
+import { Profile, ApiResponse } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -18,8 +18,8 @@ export default function Home() {
   } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      const response = await axiosInstance.get<Profile>('/api/v1/profile');
-      return response.data;
+      const response = await axiosInstance.get<ApiResponse<Profile>>('/api/v1/profile');
+      return response.data.data;
     },
   });
 

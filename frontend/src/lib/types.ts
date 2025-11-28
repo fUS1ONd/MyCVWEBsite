@@ -52,3 +52,18 @@ export interface PaginatedResponse<T> {
   total: number;
   total_pages: number;
 }
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  meta?: {
+    page?: number;
+    page_size?: number;
+    total_pages?: number;
+    total_count?: number;
+  };
+  error?: {
+    code: string;
+    message: string;
+  };
+}
