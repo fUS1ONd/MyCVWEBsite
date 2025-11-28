@@ -4,8 +4,10 @@ import { Github } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 
 export default function Login() {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
   const handleOAuthLogin = (provider: 'google' | 'github') => {
-    window.location.href = `http://localhost:8080/auth/${provider}`;
+    window.location.href = `${backendUrl}/auth/${provider}`;
   };
 
   return (
