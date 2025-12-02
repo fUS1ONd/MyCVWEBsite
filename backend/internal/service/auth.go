@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"personal-web-platform/config"
@@ -26,35 +27,71 @@ type authService struct {
 	authRepo    repository.AuthRepository
 	sessionRepo repository.SessionRepository
 	cfg         *config.Config
+	log         *slog.Logger
 }
 
 // NewAuthService creates a new auth service implementation
-func NewAuthService(authRepo repository.AuthRepository, sessionRepo repository.SessionRepository, cfg *config.Config) AuthService {
+func NewAuthService(authRepo repository.AuthRepository, sessionRepo repository.SessionRepository, cfg *config.Config, log *slog.Logger) AuthService {
 	return &authService{
 		authRepo:    authRepo,
 		sessionRepo: sessionRepo,
 		cfg:         cfg,
+		log:         log,
 	}
 }
 
 func (s *authService) LoginWithOAuth(ctx context.Context, gothUser goth.User) (*domain.User, *domain.Session, error) {
+	s.log.Info("auth_service: processing OAuth login",
+		"provider", gothUser.Provider,
+		"provider_user_id", gothUser.UserID,
+		"email", gothUser.Email,
+	)
+
 	// Try to find existing user by provider ID
 	user, err := s.authRepo.GetUserByProviderID(ctx, gothUser.Provider, gothUser.UserID)
 	if err != nil {
+		s.log.Error("auth_service: failed to get user by provider id",
+			"error", err,
+			"provider", gothUser.Provider,
+			"provider_user_id", gothUser.UserID,
+		)
 		return nil, nil, fmt.Errorf("failed to get user by provider id: %w", err)
 	}
 
 	// If user doesn't exist, create new user
 	if user == nil {
+		s.log.Info("auth_service: user not found, creating new user",
+			"provider", gothUser.Provider,
+			"email", gothUser.Email,
+		)
+
 		// Validate that email is provided (required for VK ID)
 		if gothUser.Email == "" {
+			s.log.Error("auth_service: email required but not provided",
+				"provider", gothUser.Provider,
+				"provider_user_id", gothUser.UserID,
+			)
 			return nil, nil, fmt.Errorf("email permission required for authentication")
 		}
 
 		user, err = s.authRepo.CreateUser(ctx, gothUser.Email, domain.RoleUser)
 		if err != nil {
+			s.log.Error("auth_service: failed to create user",
+				"error", err,
+				"email", gothUser.Email,
+			)
 			return nil, nil, fmt.Errorf("failed to create user: %w", err)
 		}
+
+		s.log.Info("auth_service: new user created",
+			"user_id", user.ID,
+			"email", user.Email,
+		)
+	} else {
+		s.log.Info("auth_service: existing user found",
+			"user_id", user.ID,
+			"email", user.Email,
+		)
 	}
 
 	// Link or update OAuth provider
@@ -69,14 +106,34 @@ func (s *authService) LoginWithOAuth(ctx context.Context, gothUser goth.User) (*
 
 	err = s.authRepo.LinkOAuthProvider(ctx, oauthProvider)
 	if err != nil {
+		s.log.Error("auth_service: failed to link OAuth provider",
+			"error", err,
+			"user_id", user.ID,
+			"provider", gothUser.Provider,
+		)
 		return nil, nil, fmt.Errorf("failed to link oauth provider: %w", err)
 	}
+
+	s.log.Debug("auth_service: OAuth provider linked",
+		"user_id", user.ID,
+		"provider", gothUser.Provider,
+	)
 
 	// Create session
 	session, err := s.createSession(ctx, user.ID)
 	if err != nil {
+		s.log.Error("auth_service: failed to create session",
+			"error", err,
+			"user_id", user.ID,
+		)
 		return nil, nil, fmt.Errorf("failed to create session: %w", err)
 	}
+
+	s.log.Info("auth_service: OAuth login successful",
+		"user_id", user.ID,
+		"provider", gothUser.Provider,
+		"session_expires", session.ExpiresAt,
+	)
 
 	return user, session, nil
 }

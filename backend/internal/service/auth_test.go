@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"os"
 	"testing"
 	"time"
 
@@ -138,7 +140,8 @@ func TestAuthService_LoginWithOAuth_ExistingUser(t *testing.T) {
 	mockSessionRepo.On("CreateSession", mock.Anything, mock.AnythingOfType("*domain.Session")).
 		Return(nil)
 
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg)
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
 	user, session, err := service.LoginWithOAuth(context.Background(), gothUser)
 
 	assert.NoError(t, err)
@@ -182,7 +185,8 @@ func TestAuthService_LoginWithOAuth_NewUser(t *testing.T) {
 	mockSessionRepo.On("CreateSession", mock.Anything, mock.AnythingOfType("*domain.Session")).
 		Return(nil)
 
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg)
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
 	user, session, err := service.LoginWithOAuth(context.Background(), gothUser)
 
 	assert.NoError(t, err)
@@ -211,7 +215,8 @@ func TestAuthService_LoginWithOAuth_CreateUserError(t *testing.T) {
 	mockAuthRepo.On("CreateUser", mock.Anything, "error@example.com", domain.RoleUser).
 		Return(nil, errors.New("database error"))
 
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg)
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
 	user, session, err := service.LoginWithOAuth(context.Background(), gothUser)
 
 	assert.Error(t, err)
@@ -246,7 +251,8 @@ func TestAuthService_ValidateSession_Success(t *testing.T) {
 	mockAuthRepo.On("GetUserByID", mock.Anything, 1).
 		Return(user, nil)
 
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg)
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
 	result, err := service.ValidateSession(context.Background(), sessionToken)
 
 	assert.NoError(t, err)
@@ -268,7 +274,8 @@ func TestAuthService_ValidateSession_NotFound(t *testing.T) {
 	mockSessionRepo.On("GetSession", mock.Anything, sessionToken).
 		Return(nil, nil)
 
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg)
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
 	result, err := service.ValidateSession(context.Background(), sessionToken)
 
 	assert.NoError(t, err)
@@ -287,7 +294,8 @@ func TestAuthService_Logout_Success(t *testing.T) {
 	mockSessionRepo.On("DeleteSession", mock.Anything, sessionToken).
 		Return(nil)
 
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg)
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
 	err := service.Logout(context.Background(), sessionToken)
 
 	assert.NoError(t, err)
@@ -304,7 +312,8 @@ func TestAuthService_Logout_Error(t *testing.T) {
 	mockSessionRepo.On("DeleteSession", mock.Anything, sessionToken).
 		Return(errors.New("database error"))
 
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg)
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
 	err := service.Logout(context.Background(), sessionToken)
 
 	assert.Error(t, err)
@@ -349,7 +358,8 @@ func TestAuthService_GetUserByID(t *testing.T) {
 
 			tt.setupMock(mockAuthRepo)
 
-			service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg)
+			log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+			service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
 			user, err := service.GetUserByID(context.Background(), tt.userID)
 
 			if tt.wantErr {

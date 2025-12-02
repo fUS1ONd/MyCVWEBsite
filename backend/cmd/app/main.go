@@ -34,12 +34,11 @@ func main() {
 	log.Info("connected to database")
 
 	// Initialize OAuth providers
-	oauth.InitProviders(cfg)
-	log.Info("oauth providers initialized")
+	oauth.InitProviders(cfg, log)
 
 	// Layers initialization
 	repo := repository.NewRepositories(db, cfg)
-	services := service.NewServices(repo, cfg)
+	services := service.NewServices(repo, cfg, log)
 	handlers := transport.NewHandler(services, log, cfg)
 
 	// Start background session cleanup

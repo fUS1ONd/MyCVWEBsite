@@ -3,6 +3,7 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
 	"personal-web-platform/config"
 	"personal-web-platform/internal/repository"
@@ -19,10 +20,10 @@ type Services struct {
 }
 
 // NewServices creates a new Services instance with all implementations
-func NewServices(repos *repository.Repositories, cfg *config.Config) *Services {
+func NewServices(repos *repository.Repositories, cfg *config.Config, log *slog.Logger) *Services {
 	return &Services{
 		Profile: NewProfileService(repos.Profile),
-		Auth:    NewAuthService(repos.Auth, repos.Session, cfg),
+		Auth:    NewAuthService(repos.Auth, repos.Session, cfg, log),
 		Post:    NewPostService(repos.Post),
 		Comment: NewCommentService(repos.Comment, repos.Post),
 		repos:   repos,
