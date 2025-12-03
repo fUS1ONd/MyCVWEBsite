@@ -29,8 +29,8 @@ func (m *MockAuthRepository) GetUserByProviderID(ctx context.Context, provider, 
 	return args.Get(0).(*domain.User), args.Error(1) //nolint:errcheck // mock method
 }
 
-func (m *MockAuthRepository) CreateUser(ctx context.Context, email string, role domain.Role) (*domain.User, error) {
-	args := m.Called(ctx, email, role)
+func (m *MockAuthRepository) CreateUser(ctx context.Context, email string, name string, avatarURL string, role domain.Role) (*domain.User, error) {
+	args := m.Called(ctx, email, name, avatarURL, role)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:errcheck // mock method
 	}
@@ -178,7 +178,7 @@ func TestAuthService_LoginWithOAuth_NewUser(t *testing.T) {
 	// Setup mocks - user not found, create new one
 	mockAuthRepo.On("GetUserByProviderID", mock.Anything, "github", "github-user-456").
 		Return(nil, nil)
-	mockAuthRepo.On("CreateUser", mock.Anything, "newuser@example.com", domain.RoleUser).
+	mockAuthRepo.On("CreateUser", mock.Anything, "newuser@example.com", "", "", domain.RoleUser).
 		Return(newUser, nil)
 	mockAuthRepo.On("LinkOAuthProvider", mock.Anything, mock.AnythingOfType("*domain.OAuthProvider")).
 		Return(nil)
@@ -212,7 +212,7 @@ func TestAuthService_LoginWithOAuth_CreateUserError(t *testing.T) {
 
 	mockAuthRepo.On("GetUserByProviderID", mock.Anything, "vk", "vk-user-789").
 		Return(nil, nil)
-	mockAuthRepo.On("CreateUser", mock.Anything, "error@example.com", domain.RoleUser).
+	mockAuthRepo.On("CreateUser", mock.Anything, "error@example.com", "", "", domain.RoleUser).
 		Return(nil, errors.New("database error"))
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))

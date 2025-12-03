@@ -177,11 +177,23 @@ func (h *Handler) authCallback(w http.ResponseWriter, r *http.Request) {
 
 // authMe returns current user info
 func (h *Handler) authMe(w http.ResponseWriter, r *http.Request) {
+	token := h.getSessionToken(r)
+
+	h.log.Debug("auth: /auth/me request",
+		"has_token", token != "",
+		"origin", r.Header.Get("Origin"),
+		"referer", r.Header.Get("Referer"),
+		"user_agent", r.Header.Get("User-Agent"),
+	)
+
 	user := h.getUserFromContext(r.Context())
 	if user == nil {
+		h.log.Warn("auth: /auth/me unauthorized", "token_present", token != "")
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
+
+	h.log.Debug("auth: /auth/me success", "user_id", user.ID, "email", user.Email)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(user); err != nil {
@@ -209,7 +221,7 @@ func (h *Handler) authLogout(w http.ResponseWriter, r *http.Request) {
 
 // setSessionCookie sets session cookie
 func (h *Handler) setSessionCookie(w http.ResponseWriter, token string) {
-	http.SetCookie(w, &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     h.cfg.Auth.CookieName,
 		Value:    token,
 		Path:     "/",
@@ -217,7 +229,14 @@ func (h *Handler) setSessionCookie(w http.ResponseWriter, token string) {
 		HttpOnly: h.cfg.Auth.CookieHTTPOnly,
 		Secure:   h.cfg.Auth.CookieSecure,
 		SameSite: h.parseSameSite(h.cfg.Auth.CookieSameSite),
-	})
+	}
+
+	// Set domain if explicitly configured
+	if h.cfg.Auth.CookieDomain != "" {
+		cookie.Domain = h.cfg.Auth.CookieDomain
+	}
+
+	http.SetCookie(w, cookie)
 }
 
 // clearSessionCookie clears session cookie

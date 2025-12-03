@@ -28,6 +28,7 @@ func InitProviders(cfg *config.Config, log *slog.Logger) {
 	gothic.Store = store
 
 	providers := make([]goth.Provider, 0, 3)
+	enabledProviders := []string{}
 
 	// Google OAuth
 	if cfg.OAuth.Google.Enabled {
@@ -37,6 +38,10 @@ func InitProviders(cfg *config.Config, log *slog.Logger) {
 			cfg.OAuth.BaseURL+"/auth/google/callback",
 			"email", "profile",
 		))
+		enabledProviders = append(enabledProviders, "google")
+		log.Info("oauth: Google provider enabled",
+			"callback_url", cfg.OAuth.BaseURL+"/auth/google/callback",
+		)
 	}
 
 	// GitHub OAuth
@@ -47,6 +52,10 @@ func InitProviders(cfg *config.Config, log *slog.Logger) {
 			cfg.OAuth.BaseURL+"/auth/github/callback",
 			"user:email",
 		))
+		enabledProviders = append(enabledProviders, "github")
+		log.Info("oauth: GitHub provider enabled",
+			"callback_url", cfg.OAuth.BaseURL+"/auth/github/callback",
+		)
 	}
 
 	// VK ID OAuth 2.1
@@ -58,20 +67,9 @@ func InitProviders(cfg *config.Config, log *slog.Logger) {
 		)
 		vkProvider.SetLogger(log)
 		providers = append(providers, vkProvider)
-	}
-
-	goth.UseProviders(providers...)
-
-	log.Info("oauth: providers initialized",
-		"count", len(providers),
-		"base_url", cfg.OAuth.BaseURL,
-	)
-
-	if cfg.OAuth.VK.Enabled {
-		expectedCallback := cfg.OAuth.BaseURL + "/auth/vk/callback"
-		log.Info("oauth: VK ID callback URL",
-			"url", expectedCallback,
-			"note", "Must match VK app registration exactly",
+		enabledProviders = append(enabledProviders, "vk")
+		log.Info("oauth: VK ID provider enabled",
+			"callback_url", cfg.OAuth.BaseURL+"/auth/vk/callback",
 		)
 
 		if strings.Contains(cfg.OAuth.BaseURL, ":8080") {
@@ -81,4 +79,18 @@ func InitProviders(cfg *config.Config, log *slog.Logger) {
 			)
 		}
 	}
+
+	if len(providers) == 0 {
+		log.Warn("oauth: no providers enabled")
+		return
+	}
+
+	goth.UseProviders(providers...)
+
+	log.Info("oauth: initialization complete",
+		"count", len(providers),
+		"providers", strings.Join(enabledProviders, ", "),
+		"base_url", cfg.OAuth.BaseURL,
+		"frontend_url", cfg.OAuth.FrontendURL,
+	)
 }

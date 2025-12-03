@@ -28,7 +28,7 @@ func TestAuthRepository_Integration(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("CreateUser and GetUserByID", func(t *testing.T) {
-		user, err := repo.CreateUser(ctx, "test@example.com", domain.RoleUser)
+		user, err := repo.CreateUser(ctx, "test@example.com", "", "", domain.RoleUser)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 		assert.Equal(t, "test@example.com", user.Email)
@@ -45,7 +45,7 @@ func TestAuthRepository_Integration(t *testing.T) {
 
 	t.Run("GetUserByEmail", func(t *testing.T) {
 		email := "findme@example.com"
-		created, err := repo.CreateUser(ctx, email, domain.RoleUser)
+		created, err := repo.CreateUser(ctx, email, "", "", domain.RoleUser)
 		require.NoError(t, err)
 
 		found, err := repo.GetUserByEmail(ctx, email)
@@ -57,7 +57,7 @@ func TestAuthRepository_Integration(t *testing.T) {
 
 	t.Run("LinkOAuthProvider and GetUserByProviderID", func(t *testing.T) {
 		// Create user first
-		user, err := repo.CreateUser(ctx, "oauth@example.com", domain.RoleUser)
+		user, err := repo.CreateUser(ctx, "oauth@example.com", "", "", domain.RoleUser)
 		require.NoError(t, err)
 
 		// Link OAuth provider
@@ -83,7 +83,7 @@ func TestAuthRepository_Integration(t *testing.T) {
 
 	t.Run("GetOAuthProvider and UpdateOAuthProvider", func(t *testing.T) {
 		// Create user
-		user, err := repo.CreateUser(ctx, "provider@example.com", domain.RoleUser)
+		user, err := repo.CreateUser(ctx, "provider@example.com", "", "", domain.RoleUser)
 		require.NoError(t, err)
 
 		// Link provider
@@ -119,7 +119,7 @@ func TestAuthRepository_Integration(t *testing.T) {
 
 	t.Run("Session CRUD operations", func(t *testing.T) {
 		// Create user
-		user, err := repo.CreateUser(ctx, "session@example.com", domain.RoleUser)
+		user, err := repo.CreateUser(ctx, "session@example.com", "", "", domain.RoleUser)
 		require.NoError(t, err)
 
 		// Create session
@@ -150,7 +150,7 @@ func TestAuthRepository_Integration(t *testing.T) {
 
 	t.Run("CleanupExpiredSessions", func(t *testing.T) {
 		// Create user
-		user, err := repo.CreateUser(ctx, "cleanup@example.com", domain.RoleUser)
+		user, err := repo.CreateUser(ctx, "cleanup@example.com", "", "", domain.RoleUser)
 		require.NoError(t, err)
 
 		// Create expired session
@@ -189,7 +189,7 @@ func TestAuthRepository_Integration(t *testing.T) {
 
 	t.Run("DeleteUserSessions", func(t *testing.T) {
 		// Create user
-		user, err := repo.CreateUser(ctx, "multisession@example.com", domain.RoleUser)
+		user, err := repo.CreateUser(ctx, "multisession@example.com", "", "", domain.RoleUser)
 		require.NoError(t, err)
 
 		// Create multiple sessions

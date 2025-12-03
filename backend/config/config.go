@@ -4,6 +4,7 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -53,6 +54,7 @@ type Auth struct {
 	SessionSecret  string        `yaml:"session_secret" env:"SESSION_SECRET" env-required:"true"`
 	SessionMaxAge  time.Duration `yaml:"session_max_age" env-default:"168h"` // 7 days
 	CookieName     string        `yaml:"cookie_name" env-default:"session_id"`
+	CookieDomain   string        `yaml:"cookie_domain" env:"COOKIE_DOMAIN" env-default:""`
 	CookieSecure   bool          `yaml:"cookie_secure" env-default:"false"`
 	CookieHTTPOnly bool          `yaml:"cookie_http_only" env-default:"true"`
 	CookieSameSite string        `yaml:"cookie_same_site" env-default:"lax"`
@@ -107,5 +109,22 @@ func MustLoad() *Config {
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		log.Fatalf("cannot read config: %s", err)
 	}
+
+	// Apply defaults and validate configuration
+	if cfg.OAuth.FrontendURL == "" {
+		cfg.OAuth.FrontendURL = cfg.OAuth.BaseURL
+	}
+
+	// Validate OAuth URLs
+	if !strings.HasPrefix(cfg.OAuth.BaseURL, "http://") &&
+		!strings.HasPrefix(cfg.OAuth.BaseURL, "https://") {
+		log.Fatalf("oauth.base_url must start with http:// or https://, got: %s", cfg.OAuth.BaseURL)
+	}
+
+	if !strings.HasPrefix(cfg.OAuth.FrontendURL, "http://") &&
+		!strings.HasPrefix(cfg.OAuth.FrontendURL, "https://") {
+		log.Fatalf("oauth.frontend_url must start with http:// or https://, got: %s", cfg.OAuth.FrontendURL)
+	}
+
 	return &cfg
 }

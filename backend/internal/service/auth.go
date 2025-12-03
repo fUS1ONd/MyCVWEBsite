@@ -74,7 +74,7 @@ func (s *authService) LoginWithOAuth(ctx context.Context, gothUser goth.User) (*
 			return nil, nil, fmt.Errorf("email permission required for authentication")
 		}
 
-		user, err = s.authRepo.CreateUser(ctx, gothUser.Email, domain.RoleUser)
+		user, err = s.authRepo.CreateUser(ctx, gothUser.Email, gothUser.Name, gothUser.AvatarURL, domain.RoleUser)
 		if err != nil {
 			s.log.Error("auth_service: failed to create user",
 				"error", err,

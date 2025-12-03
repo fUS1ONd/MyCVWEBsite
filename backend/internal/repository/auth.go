@@ -12,7 +12,7 @@ import (
 
 // AuthRepository defines methods for authentication data access
 type AuthRepository interface {
-	CreateUser(ctx context.Context, email string, role domain.Role) (*domain.User, error)
+	CreateUser(ctx context.Context, email string, name string, avatarURL string, role domain.Role) (*domain.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	GetUserByID(ctx context.Context, id int) (*domain.User, error)
 	LinkOAuthProvider(ctx context.Context, provider *domain.OAuthProvider) error
@@ -30,19 +30,21 @@ func NewAuthRepo(db *pgxpool.Pool) AuthRepository {
 	return &authRepo{db: db}
 }
 
-func (r *authRepo) CreateUser(ctx context.Context, email string, role domain.Role) (*domain.User, error) {
+func (r *authRepo) CreateUser(ctx context.Context, email string, name string, avatarURL string, role domain.Role) (*domain.User, error) {
 	var user domain.User
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
-		INSERT INTO users (email, role, created_at)
-		VALUES ($1, $2, NOW())
-		RETURNING id, email, role, created_at
+		INSERT INTO users (email, name, avatar_url, role, created_at)
+		VALUES ($1, $2, $3, $4, NOW())
+		RETURNING id, email, name, avatar_url, role, created_at
 	`
 
-	err := db.QueryRow(ctx, query, email, role).Scan(
+	err := db.QueryRow(ctx, query, email, name, avatarURL, role).Scan(
 		&user.ID,
 		&user.Email,
+		&user.Name,
+		&user.AvatarURL,
 		&user.Role,
 		&user.CreatedAt,
 	)
@@ -58,7 +60,7 @@ func (r *authRepo) GetUserByEmail(ctx context.Context, email string) (*domain.Us
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
-		SELECT id, email, role, created_at
+		SELECT id, email, name, avatar_url, role, created_at
 		FROM users
 		WHERE email = $1
 	`
@@ -66,6 +68,8 @@ func (r *authRepo) GetUserByEmail(ctx context.Context, email string) (*domain.Us
 	err := db.QueryRow(ctx, query, email).Scan(
 		&user.ID,
 		&user.Email,
+		&user.Name,
+		&user.AvatarURL,
 		&user.Role,
 		&user.CreatedAt,
 	)
@@ -84,7 +88,7 @@ func (r *authRepo) GetUserByID(ctx context.Context, id int) (*domain.User, error
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
-		SELECT id, email, role, created_at
+		SELECT id, email, name, avatar_url, role, created_at
 		FROM users
 		WHERE id = $1
 	`
@@ -92,6 +96,8 @@ func (r *authRepo) GetUserByID(ctx context.Context, id int) (*domain.User, error
 	err := db.QueryRow(ctx, query, id).Scan(
 		&user.ID,
 		&user.Email,
+		&user.Name,
+		&user.AvatarURL,
 		&user.Role,
 		&user.CreatedAt,
 	)
@@ -141,7 +147,7 @@ func (r *authRepo) GetUserByProviderID(ctx context.Context, providerName, provid
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
-		SELECT u.id, u.email, u.role, u.created_at
+		SELECT u.id, u.email, u.name, u.avatar_url, u.role, u.created_at
 		FROM users u
 		INNER JOIN oauth_providers op ON u.id = op.user_id
 		WHERE op.provider = $1 AND op.provider_user_id = $2
@@ -150,6 +156,8 @@ func (r *authRepo) GetUserByProviderID(ctx context.Context, providerName, provid
 	err := db.QueryRow(ctx, query, providerName, providerUserID).Scan(
 		&user.ID,
 		&user.Email,
+		&user.Name,
+		&user.AvatarURL,
 		&user.Role,
 		&user.CreatedAt,
 	)

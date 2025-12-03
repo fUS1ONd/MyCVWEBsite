@@ -5,10 +5,10 @@ import { FcGoogle } from 'react-icons/fc';
 import { SlSocialVkontakte } from 'react-icons/sl';
 
 export default function Login() {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
-
   const handleOAuthLogin = (provider: 'google' | 'github' | 'vk') => {
-    window.location.href = `${backendUrl}/auth/${provider}`;
+    // Browser redirects must go through Nginx, not directly to backend
+    // Use relative URL so browser goes to http://localhost/auth/{provider}
+    window.location.href = `/auth/${provider}`;
   };
 
   return (

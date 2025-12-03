@@ -29,7 +29,7 @@ func TestCommentRepository_Integration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create test user and post
-	user, err := authRepo.CreateUser(ctx, "commenter@example.com", domain.RoleUser)
+	user, err := authRepo.CreateUser(ctx, "commenter@example.com", "", "", domain.RoleUser)
 	require.NoError(t, err)
 
 	post := &domain.Post{

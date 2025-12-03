@@ -27,7 +27,7 @@ func TestPostRepository_Integration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create test user
-	author, err := authRepo.CreateUser(ctx, "author@example.com", domain.RoleAdmin)
+	author, err := authRepo.CreateUser(ctx, "author@example.com", "", "", domain.RoleAdmin)
 	require.NoError(t, err)
 
 	t.Run("Create and GetByID", func(t *testing.T) {
