@@ -23,7 +23,7 @@ type Services struct {
 func NewServices(repos *repository.Repositories, cfg *config.Config, log *slog.Logger) *Services {
 	return &Services{
 		Profile: NewProfileService(repos.Profile),
-		Auth:    NewAuthService(repos.Auth, repos.Session, cfg, log),
+		Auth:    NewAuthService(repos.Auth, repos.Session, repos.Transactor, cfg, log),
 		Post:    NewPostService(repos.Post),
 		Comment: NewCommentService(repos.Comment, repos.Post),
 		repos:   repos,

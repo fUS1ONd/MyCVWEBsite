@@ -104,6 +104,20 @@ func (m *MockSessionRepository) DeleteUserSessions(ctx context.Context, userID i
 	return args.Error(0)
 }
 
+// MockTransactor is a mock implementation of Transactor
+type MockTransactor struct {
+	mock.Mock
+}
+
+func (m *MockTransactor) RunInTransaction(ctx context.Context, fn func(context.Context) error) error {
+	args := m.Called(ctx, fn)
+	if args.Get(0) == nil {
+		// Execute the function directly without actual transaction
+		return fn(ctx)
+	}
+	return args.Error(0)
+}
+
 func getTestConfig() *config.Config {
 	return &config.Config{
 		Auth: config.Auth{
@@ -115,6 +129,7 @@ func getTestConfig() *config.Config {
 func TestAuthService_LoginWithOAuth_ExistingUser(t *testing.T) {
 	mockAuthRepo := new(MockAuthRepository)
 	mockSessionRepo := new(MockSessionRepository)
+	mockTransactor := new(MockTransactor)
 	cfg := getTestConfig()
 
 	gothUser := goth.User{
@@ -133,6 +148,7 @@ func TestAuthService_LoginWithOAuth_ExistingUser(t *testing.T) {
 	}
 
 	// Setup mocks
+	mockTransactor.On("RunInTransaction", mock.Anything, mock.Anything).Return(nil)
 	mockAuthRepo.On("GetUserByProviderID", mock.Anything, "google", "google-user-123").
 		Return(existingUser, nil)
 	mockAuthRepo.On("LinkOAuthProvider", mock.Anything, mock.AnythingOfType("*domain.OAuthProvider")).
@@ -141,7 +157,7 @@ func TestAuthService_LoginWithOAuth_ExistingUser(t *testing.T) {
 		Return(nil)
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, mockTransactor, cfg, log)
 	user, session, err := service.LoginWithOAuth(context.Background(), gothUser)
 
 	assert.NoError(t, err)
@@ -153,11 +169,13 @@ func TestAuthService_LoginWithOAuth_ExistingUser(t *testing.T) {
 
 	mockAuthRepo.AssertExpectations(t)
 	mockSessionRepo.AssertExpectations(t)
+	mockTransactor.AssertExpectations(t)
 }
 
 func TestAuthService_LoginWithOAuth_NewUser(t *testing.T) {
 	mockAuthRepo := new(MockAuthRepository)
 	mockSessionRepo := new(MockSessionRepository)
+	mockTransactor := new(MockTransactor)
 	cfg := getTestConfig()
 
 	gothUser := goth.User{
@@ -176,7 +194,10 @@ func TestAuthService_LoginWithOAuth_NewUser(t *testing.T) {
 	}
 
 	// Setup mocks - user not found, create new one
+	mockTransactor.On("RunInTransaction", mock.Anything, mock.Anything).Return(nil)
 	mockAuthRepo.On("GetUserByProviderID", mock.Anything, "github", "github-user-456").
+		Return(nil, nil)
+	mockAuthRepo.On("GetUserByEmail", mock.Anything, "newuser@example.com").
 		Return(nil, nil)
 	mockAuthRepo.On("CreateUser", mock.Anything, "newuser@example.com", "", "", domain.RoleUser).
 		Return(newUser, nil)
@@ -186,7 +207,7 @@ func TestAuthService_LoginWithOAuth_NewUser(t *testing.T) {
 		Return(nil)
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, mockTransactor, cfg, log)
 	user, session, err := service.LoginWithOAuth(context.Background(), gothUser)
 
 	assert.NoError(t, err)
@@ -212,11 +233,15 @@ func TestAuthService_LoginWithOAuth_CreateUserError(t *testing.T) {
 
 	mockAuthRepo.On("GetUserByProviderID", mock.Anything, "vk", "vk-user-789").
 		Return(nil, nil)
+	mockAuthRepo.On("GetUserByEmail", mock.Anything, "error@example.com").
+		Return(nil, nil)
 	mockAuthRepo.On("CreateUser", mock.Anything, "error@example.com", "", "", domain.RoleUser).
 		Return(nil, errors.New("database error"))
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
+	mockTransactor := new(MockTransactor)
+	mockTransactor.On("RunInTransaction", mock.Anything, mock.Anything).Return(nil)
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, mockTransactor, cfg, log)
 	user, session, err := service.LoginWithOAuth(context.Background(), gothUser)
 
 	assert.Error(t, err)
@@ -252,7 +277,9 @@ func TestAuthService_ValidateSession_Success(t *testing.T) {
 		Return(user, nil)
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
+	mockTransactor := new(MockTransactor)
+	mockTransactor.On("RunInTransaction", mock.Anything, mock.Anything).Return(nil)
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, mockTransactor, cfg, log)
 	result, err := service.ValidateSession(context.Background(), sessionToken)
 
 	assert.NoError(t, err)
@@ -275,7 +302,9 @@ func TestAuthService_ValidateSession_NotFound(t *testing.T) {
 		Return(nil, nil)
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
+	mockTransactor := new(MockTransactor)
+	mockTransactor.On("RunInTransaction", mock.Anything, mock.Anything).Return(nil)
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, mockTransactor, cfg, log)
 	result, err := service.ValidateSession(context.Background(), sessionToken)
 
 	assert.NoError(t, err)
@@ -295,7 +324,9 @@ func TestAuthService_Logout_Success(t *testing.T) {
 		Return(nil)
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
+	mockTransactor := new(MockTransactor)
+	mockTransactor.On("RunInTransaction", mock.Anything, mock.Anything).Return(nil)
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, mockTransactor, cfg, log)
 	err := service.Logout(context.Background(), sessionToken)
 
 	assert.NoError(t, err)
@@ -313,7 +344,9 @@ func TestAuthService_Logout_Error(t *testing.T) {
 		Return(errors.New("database error"))
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
+	mockTransactor := new(MockTransactor)
+	mockTransactor.On("RunInTransaction", mock.Anything, mock.Anything).Return(nil)
+	service := NewAuthService(mockAuthRepo, mockSessionRepo, mockTransactor, cfg, log)
 	err := service.Logout(context.Background(), sessionToken)
 
 	assert.Error(t, err)
@@ -359,7 +392,9 @@ func TestAuthService_GetUserByID(t *testing.T) {
 			tt.setupMock(mockAuthRepo)
 
 			log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-			service := NewAuthService(mockAuthRepo, mockSessionRepo, cfg, log)
+			mockTransactor := new(MockTransactor)
+			mockTransactor.On("RunInTransaction", mock.Anything, mock.Anything).Return(nil)
+			service := NewAuthService(mockAuthRepo, mockSessionRepo, mockTransactor, cfg, log)
 			user, err := service.GetUserByID(context.Background(), tt.userID)
 
 			if tt.wantErr {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"personal-web-platform/internal/domain"
 	"personal-web-platform/internal/repository"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/markbates/goth"
 )
 
@@ -26,15 +28,17 @@ type AuthService interface {
 type authService struct {
 	authRepo    repository.AuthRepository
 	sessionRepo repository.SessionRepository
+	transactor  repository.Transactor
 	cfg         *config.Config
 	log         *slog.Logger
 }
 
 // NewAuthService creates a new auth service implementation
-func NewAuthService(authRepo repository.AuthRepository, sessionRepo repository.SessionRepository, cfg *config.Config, log *slog.Logger) AuthService {
+func NewAuthService(authRepo repository.AuthRepository, sessionRepo repository.SessionRepository, transactor repository.Transactor, cfg *config.Config, log *slog.Logger) AuthService {
 	return &authService{
 		authRepo:    authRepo,
 		sessionRepo: sessionRepo,
+		transactor:  transactor,
 		cfg:         cfg,
 		log:         log,
 	}
@@ -47,79 +51,127 @@ func (s *authService) LoginWithOAuth(ctx context.Context, gothUser goth.User) (*
 		"email", gothUser.Email,
 	)
 
-	// Try to find existing user by provider ID
-	user, err := s.authRepo.GetUserByProviderID(ctx, gothUser.Provider, gothUser.UserID)
-	if err != nil {
-		s.log.Error("auth_service: failed to get user by provider id",
-			"error", err,
-			"provider", gothUser.Provider,
-			"provider_user_id", gothUser.UserID,
-		)
-		return nil, nil, fmt.Errorf("failed to get user by provider id: %w", err)
-	}
+	var user *domain.User
 
-	// If user doesn't exist, create new user
-	if user == nil {
-		s.log.Info("auth_service: user not found, creating new user",
-			"provider", gothUser.Provider,
-			"email", gothUser.Email,
-		)
-
-		// Validate that email is provided (required for VK ID)
-		if gothUser.Email == "" {
-			s.log.Error("auth_service: email required but not provided",
+	// Execute user lookup/creation + provider linking in transaction
+	err := s.transactor.RunInTransaction(ctx, func(txCtx context.Context) error {
+		// Step 1: Try to find by provider ID first
+		foundUser, err := s.authRepo.GetUserByProviderID(txCtx, gothUser.Provider, gothUser.UserID)
+		if err != nil {
+			s.log.Error("auth_service: failed to get user by provider id",
+				"error", err,
 				"provider", gothUser.Provider,
 				"provider_user_id", gothUser.UserID,
 			)
-			return nil, nil, fmt.Errorf("email permission required for authentication")
+			return fmt.Errorf("failed to get user by provider id: %w", err)
 		}
 
-		user, err = s.authRepo.CreateUser(ctx, gothUser.Email, gothUser.Name, gothUser.AvatarURL, domain.RoleUser)
-		if err != nil {
-			s.log.Error("auth_service: failed to create user",
-				"error", err,
+		// Step 2: If not found by provider, try to find by email
+		if foundUser == nil && gothUser.Email != "" {
+			foundUser, err = s.authRepo.GetUserByEmail(txCtx, gothUser.Email)
+			if err != nil {
+				s.log.Error("auth_service: failed to get user by email",
+					"error", err,
+					"email", gothUser.Email,
+				)
+				return fmt.Errorf("failed to get user by email: %w", err)
+			}
+
+			if foundUser != nil {
+				s.log.Info("auth_service: existing user found by email",
+					"user_id", foundUser.ID,
+					"email", foundUser.Email,
+					"new_provider", gothUser.Provider,
+				)
+			}
+		}
+
+		// Step 3: If still not found, create new user
+		if foundUser == nil {
+			if gothUser.Email == "" {
+				s.log.Error("auth_service: email required but not provided",
+					"provider", gothUser.Provider,
+					"provider_user_id", gothUser.UserID,
+				)
+				return fmt.Errorf("email permission required for authentication")
+			}
+
+			s.log.Info("auth_service: user not found, creating new user",
+				"provider", gothUser.Provider,
 				"email", gothUser.Email,
 			)
-			return nil, nil, fmt.Errorf("failed to create user: %w", err)
+
+			foundUser, err = s.authRepo.CreateUser(txCtx, gothUser.Email, gothUser.Name, gothUser.AvatarURL, domain.RoleUser)
+			if err != nil {
+				// Check if it's a duplicate key error (race condition)
+				if isDuplicateKeyError(err) {
+					s.log.Warn("auth_service: duplicate key error, retrying lookup",
+						"email", gothUser.Email,
+					)
+					// Another goroutine created the user, retry lookup
+					foundUser, err = s.authRepo.GetUserByEmail(txCtx, gothUser.Email)
+					if err != nil || foundUser == nil {
+						s.log.Error("auth_service: failed to get user after duplicate key",
+							"error", err,
+							"email", gothUser.Email,
+						)
+						return fmt.Errorf("failed to get user after duplicate key: %w", err)
+					}
+					s.log.Info("auth_service: user found after retry", "user_id", foundUser.ID)
+				} else {
+					s.log.Error("auth_service: failed to create user",
+						"error", err,
+						"email", gothUser.Email,
+					)
+					return fmt.Errorf("failed to create user: %w", err)
+				}
+			} else {
+				s.log.Info("auth_service: new user created",
+					"user_id", foundUser.ID,
+					"email", foundUser.Email,
+				)
+			}
+		} else {
+			s.log.Info("auth_service: existing user found",
+				"user_id", foundUser.ID,
+				"email", foundUser.Email,
+			)
 		}
 
-		s.log.Info("auth_service: new user created",
-			"user_id", user.ID,
-			"email", user.Email,
-		)
-	} else {
-		s.log.Info("auth_service: existing user found",
-			"user_id", user.ID,
-			"email", user.Email,
-		)
-	}
+		// Step 4: Link OAuth provider (UPSERT)
+		oauthProvider := &domain.OAuthProvider{
+			UserID:         foundUser.ID,
+			Provider:       gothUser.Provider,
+			ProviderUserID: gothUser.UserID,
+			AccessToken:    gothUser.AccessToken,
+			RefreshToken:   gothUser.RefreshToken,
+			ExpiresAt:      gothUser.ExpiresAt,
+		}
 
-	// Link or update OAuth provider
-	oauthProvider := &domain.OAuthProvider{
-		UserID:         user.ID,
-		Provider:       gothUser.Provider,
-		ProviderUserID: gothUser.UserID,
-		AccessToken:    gothUser.AccessToken,
-		RefreshToken:   gothUser.RefreshToken,
-		ExpiresAt:      gothUser.ExpiresAt,
-	}
+		err = s.authRepo.LinkOAuthProvider(txCtx, oauthProvider)
+		if err != nil {
+			s.log.Error("auth_service: failed to link OAuth provider",
+				"error", err,
+				"user_id", foundUser.ID,
+				"provider", gothUser.Provider,
+			)
+			return fmt.Errorf("failed to link oauth provider: %w", err)
+		}
 
-	err = s.authRepo.LinkOAuthProvider(ctx, oauthProvider)
-	if err != nil {
-		s.log.Error("auth_service: failed to link OAuth provider",
-			"error", err,
-			"user_id", user.ID,
+		s.log.Debug("auth_service: OAuth provider linked",
+			"user_id", foundUser.ID,
 			"provider", gothUser.Provider,
 		)
-		return nil, nil, fmt.Errorf("failed to link oauth provider: %w", err)
+
+		user = foundUser
+		return nil
+	})
+
+	if err != nil {
+		return nil, nil, err
 	}
 
-	s.log.Debug("auth_service: OAuth provider linked",
-		"user_id", user.ID,
-		"provider", gothUser.Provider,
-	)
-
-	// Create session
+	// Step 5: Create session (outside transaction)
 	session, err := s.createSession(ctx, user.ID)
 	if err != nil {
 		s.log.Error("auth_service: failed to create session",
@@ -200,4 +252,13 @@ func generateSecureToken(length int) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+// isDuplicateKeyError checks if error is PostgreSQL unique constraint violation
+func isDuplicateKeyError(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505" // unique_violation
+	}
+	return false
 }
