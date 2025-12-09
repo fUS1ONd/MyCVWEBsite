@@ -67,3 +67,11 @@ export interface ApiResponse<T> {
     message: string;
   };
 }
+
+export interface PostListResponse {
+  posts: Post[];
+  total_count: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}

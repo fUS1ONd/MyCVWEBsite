@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import axiosInstance from '@/lib/axios';
-import { Post, PaginatedResponse } from '@/lib/types';
+import { Post, PostListResponse } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,7 +18,7 @@ export default function Blog() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['posts', page, limit],
     queryFn: async () => {
-      const response = await axiosInstance.get<PaginatedResponse<Post>>(
+      const response = await axiosInstance.get<PostListResponse>(
         `/api/v1/posts?page=${page}&limit=${limit}&published=true`
       );
       return response.data;
@@ -56,7 +56,7 @@ export default function Blog() {
     );
   }
 
-  const posts = data?.data || [];
+  const posts = data?.posts || [];
   const totalPages = data?.total_pages || 1;
 
   return (

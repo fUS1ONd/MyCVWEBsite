@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import axiosInstance from '@/lib/axios';
-import { Post, PaginatedResponse } from '@/lib/types';
+import { Post, PostListResponse } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -27,7 +27,7 @@ export default function PostManager() {
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'posts', page],
     queryFn: async () => {
-      const response = await axiosInstance.get<PaginatedResponse<Post>>(
+      const response = await axiosInstance.get<PostListResponse>(
         `/api/v1/posts?page=${page}&limit=${limit}`
       );
       return response.data;
@@ -66,7 +66,7 @@ export default function PostManager() {
     );
   }
 
-  const posts = data?.data || [];
+  const posts = data?.posts || [];
   const totalPages = data?.total_pages || 1;
 
   return (
