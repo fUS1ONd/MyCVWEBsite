@@ -180,7 +180,7 @@ export default function Article() {
               <span className="font-medium">{post.author?.name}</span>
               <span>•</span>
               <time dateTime={post.created_at}>
-                {format(new Date(post.created_at), 'MMMM dd, yyyy')}
+                {format(new Date(post.created_at), 'MMMM dd, yyyy HH:mm')}
               </time>
               {post.read_time_minutes > 0 && (
                 <>

@@ -20,16 +20,6 @@ export interface Profile {
   };
 }
 
-export interface MediaFile {
-  id: number;
-  filename: string;
-  url: string;
-  mime_type: string;
-  size: number;
-  uploader_id: number;
-  created_at: string;
-}
-
 export interface Post {
   id: number;
   title: string;

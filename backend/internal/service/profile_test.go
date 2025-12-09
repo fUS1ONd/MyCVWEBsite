@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"io"
+	"log/slog"
 	"testing"
 
 	"personal-web-platform/internal/domain"
@@ -78,7 +80,8 @@ func TestProfileService_GetProfile(t *testing.T) {
 			mockRepo := new(MockProfileRepository)
 			tt.setupMock(mockRepo)
 
-			service := NewProfileService(mockRepo)
+			log := slog.New(slog.NewTextHandler(io.Discard, nil))
+			service := NewProfileService(mockRepo, log)
 			profile, err := service.GetProfile(context.Background())
 
 			if tt.wantErr {
@@ -121,6 +124,7 @@ func TestProfileService_UpdateProfile(t *testing.T) {
 			name:    "success - profile updated",
 			request: validRequest,
 			setupMock: func(m *MockProfileRepository) {
+				m.On("GetProfile", mock.Anything).Return(nil, nil).Once()
 				m.On("UpdateProfile", mock.Anything, validRequest).Return(&domain.Profile{
 					ID:          1,
 					Name:        "Jane Doe",
@@ -175,7 +179,8 @@ func TestProfileService_UpdateProfile(t *testing.T) {
 			mockRepo := new(MockProfileRepository)
 			tt.setupMock(mockRepo)
 
-			service := NewProfileService(mockRepo)
+			log := slog.New(slog.NewTextHandler(io.Discard, nil))
+			service := NewProfileService(mockRepo, log)
 			profile, err := service.UpdateProfile(context.Background(), tt.request)
 
 			if tt.wantErr {

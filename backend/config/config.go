@@ -18,7 +18,6 @@ type Config struct {
 	Profile    ProfileConfig `yaml:"profile"`
 	Auth       Auth          `yaml:"auth"`
 	OAuth      OAuth         `yaml:"oauth"`
-	Media      Media         `yaml:"media"`
 	CORS       CORS          `yaml:"cors"`
 	RateLimit  RateLimit     `yaml:"rate_limit"`
 }
@@ -75,12 +74,6 @@ type OAuthProvider struct {
 	ClientID     string `yaml:"client_id" env-required:"true"`
 	ClientSecret string `yaml:"client_secret" env-required:"true"`
 	Enabled      bool   `yaml:"enabled" env-default:"false"`
-}
-
-// Media represents media file handling configuration
-type Media struct {
-	UploadPath string `yaml:"upload_path" env:"MEDIA_UPLOAD_PATH" env-default:"./uploads"`
-	BaseURL    string `yaml:"base_url" env:"MEDIA_BASE_URL" env-default:"http://localhost:8080"`
 }
 
 // CORS represents CORS configuration

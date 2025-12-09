@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import axiosInstance from '@/lib/axios';
@@ -9,9 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Upload, X } from 'lucide-react';
 
 export default function ProfileEditor() {
   const queryClient = useQueryClient();
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['admin', 'profile'],
@@ -23,11 +27,15 @@ export default function ProfileEditor() {
 
   const {
     register,
+    setValue,
+    watch,
     handleSubmit,
     formState: { isDirty },
   } = useForm<Profile>({
     values: profile,
   });
+
+  const photoUrl = watch('photo_url');
 
   const mutation = useMutation({
     mutationFn: async (data: Profile) => {
@@ -45,6 +53,29 @@ export default function ProfileEditor() {
 
   const onSubmit = (data: Profile) => {
     mutation.mutate(data);
+  };
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setIsUploading(true);
+    try {
+      const response = await axiosInstance.post<{ success: boolean; data: { url: string } }>(
+        '/api/v1/admin/upload',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      setValue('photo_url', response.data.data.url, { shouldDirty: true });
+      toast({ title: 'Photo uploaded' });
+    } catch (error) {
+      toast({ title: 'Failed to upload photo', variant: 'destructive' });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   if (isLoading) {
@@ -105,12 +136,35 @@ export default function ProfileEditor() {
 
             <div className="space-y-2">
               <Label htmlFor="photo_url">URL фотографии</Label>
-              <Input
-                id="photo_url"
-                {...register('photo_url')}
-                type="url"
-                placeholder="https://..."
-              />
+              <div className="flex gap-2">
+                <Input id="photo_url" {...register('photo_url')} placeholder="https://..." />
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleUpload}
+                  accept="image/png, image/jpeg, image/webp"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isUploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {isUploading ? 'Uploading...' : 'Upload Photo'}
+                </Button>
+                {photoUrl && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => setValue('photo_url', '', { shouldDirty: true })}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="border-t pt-6">

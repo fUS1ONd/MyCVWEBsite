@@ -4,6 +4,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,12 +26,14 @@ type profileService struct {
 	cache       *domain.Profile
 	cacheMu     sync.RWMutex
 	lastUpdate  time.Time
+	log         *slog.Logger
 }
 
 // NewProfileService creates a new profile service implementation
-func NewProfileService(profileRepo repository.ProfileRepository) ProfileService {
+func NewProfileService(profileRepo repository.ProfileRepository, log *slog.Logger) ProfileService {
 	return &profileService{
 		profileRepo: profileRepo,
+		log:         log,
 	}
 }
 
@@ -65,6 +70,9 @@ func (s *profileService) UpdateProfile(ctx context.Context, req *domain.UpdatePr
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
+	// Get old profile for cleanup
+	oldProfile, _ := s.profileRepo.GetProfile(ctx)
+
 	// Update profile
 	profile, err := s.profileRepo.UpdateProfile(ctx, req)
 	if err != nil {
@@ -76,6 +84,16 @@ func (s *profileService) UpdateProfile(ctx context.Context, req *domain.UpdatePr
 	s.cache = profile
 	s.lastUpdate = time.Now()
 	s.cacheMu.Unlock()
+
+	// Cleanup old file if it was a local upload and changed
+	if oldProfile != nil && oldProfile.PhotoURL != "" && oldProfile.PhotoURL != profile.PhotoURL {
+		if strings.HasPrefix(oldProfile.PhotoURL, "/uploads/") {
+			// Assuming relative path from app root. path starts with /uploads/, so "." + ... works
+			if err := os.Remove("." + oldProfile.PhotoURL); err != nil {
+				s.log.Warn("failed to remove old profile photo", "path", oldProfile.PhotoURL, "error", err)
+			}
+		}
+	}
 
 	return profile, nil
 }

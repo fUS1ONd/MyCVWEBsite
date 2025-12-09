@@ -15,7 +15,6 @@ type Services struct {
 	Auth    AuthService
 	Post    PostService
 	Comment CommentService
-	Media   MediaService
 	Like    LikeService
 	repos   *repository.Repositories
 	cfg     *config.Config
@@ -24,11 +23,10 @@ type Services struct {
 // NewServices creates a new Services instance with all implementations
 func NewServices(repos *repository.Repositories, cfg *config.Config, log *slog.Logger) *Services {
 	return &Services{
-		Profile: NewProfileService(repos.Profile),
+		Profile: NewProfileService(repos.Profile, log),
 		Auth:    NewAuthService(repos.Auth, repos.Session, repos.Transactor, cfg, log),
 		Post:    NewPostService(repos.Post),
 		Comment: NewCommentService(repos.Comment, repos.Post),
-		Media:   NewMediaService(repos.Media, cfg.Media.UploadPath, cfg.Media.BaseURL),
 		Like:    NewLikeService(repos.Like, repos.Post, repos.Comment),
 		repos:   repos,
 		cfg:     cfg,

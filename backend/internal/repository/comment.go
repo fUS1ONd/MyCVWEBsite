@@ -175,13 +175,15 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.likes_count, c.created_at, c.updated_at, c.deleted_at,
-		       u.email, u.role
+		       u.email, u.name, u.avatar_url, u.role
 		FROM comments c
 		LEFT JOIN users u ON c.user_id = u.id
 		WHERE c.id = $1
 	`
 
 	var userEmail string
+	var userName string
+	var userAvatar string
 	var userRole domain.Role
 	err := db.QueryRow(ctx, query, id).Scan(
 		&comment.ID,
@@ -194,6 +196,8 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 		&comment.UpdatedAt,
 		&comment.DeletedAt,
 		&userEmail,
+		&userName,
+		&userAvatar,
 		&userRole,
 	)
 	if err != nil {
@@ -206,9 +210,11 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 	// Set user if exists
 	if userEmail != "" {
 		comment.User = &domain.User{
-			ID:    comment.UserID,
-			Email: userEmail,
-			Role:  userRole,
+			ID:        comment.UserID,
+			Email:     userEmail,
+			Name:      userName,
+			AvatarURL: userAvatar,
+			Role:      userRole,
 		}
 	}
 
@@ -219,7 +225,7 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]do
 	db := GetQueryEngine(ctx, r.db)
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.likes_count, c.created_at, c.updated_at, c.deleted_at,
-		       u.email, u.role,
+		       u.email, u.name, u.avatar_url, u.role,
 		       EXISTS(SELECT 1 FROM comment_likes cl WHERE cl.comment_id = c.id AND cl.user_id = $2) as is_liked
 		FROM comments c
 		LEFT JOIN users u ON c.user_id = u.id
@@ -240,6 +246,8 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]do
 	for rows.Next() {
 		var comment domain.Comment
 		var userEmail string
+		var userName string
+		var userAvatar string
 		var userRole domain.Role
 
 		err := rows.Scan(
@@ -253,6 +261,8 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]do
 			&comment.UpdatedAt,
 			&comment.DeletedAt,
 			&userEmail,
+			&userName,
+			&userAvatar,
 			&userRole,
 			&comment.IsLiked,
 		)
@@ -263,9 +273,11 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]do
 		// Set user if exists
 		if userEmail != "" {
 			comment.User = &domain.User{
-				ID:    comment.UserID,
-				Email: userEmail,
-				Role:  userRole,
+				ID:        comment.UserID,
+				Email:     userEmail,
+				Name:      userName,
+				AvatarURL: userAvatar,
+				Role:      userRole,
 			}
 		}
 

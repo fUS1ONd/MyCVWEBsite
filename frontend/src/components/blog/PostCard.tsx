@@ -108,7 +108,7 @@ export function PostCard({ post }: PostCardProps) {
             <span className="font-medium">{post.author?.name}</span>
             <span>•</span>
             <time dateTime={post.created_at}>
-              {format(new Date(post.created_at), 'MMM dd, yyyy')}
+              {format(new Date(post.created_at), 'MMM dd, yyyy HH:mm')}
             </time>
             {post.read_time_minutes > 0 && (
               <>

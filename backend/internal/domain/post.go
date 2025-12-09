@@ -38,7 +38,7 @@ type CreatePostRequest struct {
 	Content    string `json:"content" validate:"required,min=10"`
 	Preview    string `json:"preview"`
 	Published  bool   `json:"published"`
-	CoverImage string `json:"cover_image" validate:"omitempty,url"`
+	CoverImage string `json:"cover_image" validate:"omitempty"`
 }
 
 // UpdatePostRequest represents the request to update a post
@@ -47,7 +47,7 @@ type UpdatePostRequest struct {
 	Content    string `json:"content" validate:"required,min=10"`
 	Preview    string `json:"preview"`
 	Published  bool   `json:"published"`
-	CoverImage string `json:"cover_image" validate:"omitempty,url"`
+	CoverImage string `json:"cover_image" validate:"omitempty"`
 }
 
 // ListPostsRequest represents query parameters for listing posts

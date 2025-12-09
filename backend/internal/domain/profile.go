@@ -16,7 +16,7 @@ type Profile struct {
 	ID          int       `json:"id"`
 	Name        string    `json:"name" validate:"required,min=1,max=255"`
 	Description string    `json:"description" validate:"required,min=1"`
-	PhotoURL    string    `json:"photo_url,omitempty" validate:"omitempty,url"`
+	PhotoURL    string    `json:"photo_url,omitempty" validate:"omitempty"`
 	Activity    string    `json:"activity" validate:"required,min=1"`
 	Contacts    Contacts  `json:"contacts" validate:"required"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -27,7 +27,7 @@ type Profile struct {
 type UpdateProfileRequest struct {
 	Name        string   `json:"name" validate:"required,min=1,max=255"`
 	Description string   `json:"description" validate:"required,min=1"`
-	PhotoURL    string   `json:"photo_url,omitempty" validate:"omitempty,url"`
+	PhotoURL    string   `json:"photo_url,omitempty" validate:"omitempty"`
 	Activity    string   `json:"activity" validate:"required,min=1"`
 	Contacts    Contacts `json:"contacts" validate:"required"`
 }

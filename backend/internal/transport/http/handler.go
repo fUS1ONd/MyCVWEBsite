@@ -46,9 +46,6 @@ func (h *Handler) InitRoutes() http.Handler {
 	r.Get("/health", h.health)
 	r.Get("/ready", h.ready)
 
-	// Media file serving (public, with caching)
-	r.Get("/media/{filename}", h.serveMediaFile)
-
 	// Auth routes
 	r.Route("/auth", func(r chi.Router) {
 		r.Get("/{provider}", h.authLogin)
@@ -85,9 +82,6 @@ func (h *Handler) InitRoutes() http.Handler {
 			r.Get("/posts/{id}/likes", h.getPostLikesCount)
 			r.Post("/comments/{id}/like", h.toggleCommentLike)
 			r.Get("/comments/{id}/likes", h.getCommentLikesCount)
-
-			// Media endpoints (view)
-			r.Get("/media/{id}", h.getMedia)
 		})
 
 		// Admin endpoints
@@ -95,14 +89,10 @@ func (h *Handler) InitRoutes() http.Handler {
 			r.Use(h.AuthRequired)
 			r.Use(h.AdminRequired)
 			r.Put("/admin/profile", h.updateProfile)
+			r.Post("/admin/upload", h.uploadImage)
 			r.Post("/admin/posts", h.createPost)
 			r.Put("/admin/posts/{id}", h.updatePost)
 			r.Delete("/admin/posts/{id}", h.deletePost)
-
-			// Media management (admin only for upload/delete, viewing is for authenticated users)
-			r.Post("/admin/media", h.uploadMedia)
-			r.Get("/admin/media", h.listMedia)
-			r.Delete("/admin/media/{id}", h.deleteMedia)
 		})
 	})
 

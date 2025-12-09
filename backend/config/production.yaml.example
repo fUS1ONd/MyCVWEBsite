@@ -57,6 +57,10 @@ oauth:
     client_secret: "${VK_CLIENT_SECRET}"
     enabled: true
 
+# Note: Media uploads are removed. Use external URLs for images.
+# media:
+#   (removed)
+
 cors:
   enabled: true
   allowed_origins:

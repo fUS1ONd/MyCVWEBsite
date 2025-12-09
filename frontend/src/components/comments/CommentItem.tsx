@@ -87,7 +87,7 @@ export function CommentItem({
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm">{comment.user?.name || 'User'}</span>
             <span className="text-xs text-muted-foreground">
-              {format(new Date(comment.created_at), 'MMM dd, yyyy')}
+              {format(new Date(comment.created_at), 'MMM dd, yyyy HH:mm')}
             </span>
           </div>
 

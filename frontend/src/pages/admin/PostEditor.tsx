@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import axiosInstance from '@/lib/axios';
-import { Post, MediaFile } from '@/lib/types';
+import { Post } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +14,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
 import { ChevronLeft, Save, X } from 'lucide-react';
 import { TipTapEditor } from '@/components/editor/TipTapEditor';
-import { ImageUpload } from '@/components/editor/ImageUpload';
 
 type PostFormData = {
   title: string;
@@ -93,10 +92,6 @@ export default function PostEditor() {
     mutation.mutate(data);
   };
 
-  const handleCoverImageUpload = (url: string, mediaFile: MediaFile) => {
-    setValue('cover_image', url, { shouldDirty: true });
-  };
-
   const removeCoverImage = () => {
     setValue('cover_image', '', { shouldDirty: true });
   };
@@ -164,7 +159,7 @@ export default function PostEditor() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cover_image">Cover Image</Label>
+              <Label htmlFor="cover_image">Cover Image URL</Label>
               <div className="space-y-4">
                 <div className="flex gap-2">
                   <Input
@@ -191,7 +186,6 @@ export default function PostEditor() {
                     </Button>
                   </div>
                 )}
-                <ImageUpload onUpload={handleCoverImageUpload} label="Upload Cover Image" />
               </div>
             </div>
 

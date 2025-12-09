@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"log/slog"
-	"mime/multipart"
 	"testing"
 
 	"personal-web-platform/config"
@@ -21,7 +20,6 @@ type MockServices struct {
 	Comment *MockCommentService
 	Profile *MockProfileService
 	Auth    *MockAuthService
-	Media   *MockMediaService
 	Like    *MockLikeService
 }
 
@@ -32,7 +30,6 @@ func setupHandler(_ *testing.T) (*Handler, *MockServices) { //nolint:revive // t
 		Comment: new(MockCommentService),
 		Profile: new(MockProfileService),
 		Auth:    new(MockAuthService),
-		Media:   new(MockMediaService),
 		Like:    new(MockLikeService),
 	}
 
@@ -41,7 +38,6 @@ func setupHandler(_ *testing.T) (*Handler, *MockServices) { //nolint:revive // t
 		Comment: mocks.Comment,
 		Profile: mocks.Profile,
 		Auth:    mocks.Auth,
-		Media:   mocks.Media,
 		Like:    mocks.Like,
 	}
 
@@ -196,47 +192,6 @@ func (m *MockAuthService) GetUserByID(ctx context.Context, userID int) (*domain.
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.User), args.Error(1)
-}
-
-type MockMediaService struct {
-	mock.Mock
-}
-
-func (m *MockMediaService) Upload(ctx context.Context, file multipart.File, header *multipart.FileHeader, uploaderID int) (*domain.MediaFile, error) {
-	args := m.Called(ctx, file, header, uploaderID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.MediaFile), args.Error(1)
-}
-
-func (m *MockMediaService) GetByID(ctx context.Context, id int) (*domain.MediaFile, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.MediaFile), args.Error(1)
-}
-
-func (m *MockMediaService) GetFileReader(ctx context.Context, filename string) (io.ReadSeekCloser, string, error) {
-	args := m.Called(ctx, filename)
-	if args.Get(0) == nil {
-		return nil, "", args.Error(2)
-	}
-	return args.Get(0).(io.ReadSeekCloser), args.String(1), args.Error(2)
-}
-
-func (m *MockMediaService) Delete(ctx context.Context, id int, uploaderID int) error {
-	args := m.Called(ctx, id, uploaderID)
-	return args.Error(0)
-}
-
-func (m *MockMediaService) ListByUploader(ctx context.Context, uploaderID int) ([]domain.MediaFile, error) {
-	args := m.Called(ctx, uploaderID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]domain.MediaFile), args.Error(1)
 }
 
 type MockLikeService struct {
