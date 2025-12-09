@@ -2,19 +2,21 @@
 package imageproc
 
 import (
+	"bytes"
 	"fmt"
 	"image"
-	// Register standard image format decoders
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"mime/multipart"
 	"path/filepath"
 	"strings"
 
-	// Register WebP format decoder
+	"golang.org/x/image/draw"
+
+	// Register additional image format decoders
 	_ "golang.org/x/image/webp"
+	_ "image/gif"
 )
 
 // SupportedFormats lists all supported image formats
@@ -68,6 +70,15 @@ func ValidateImage(file multipart.File, header *multipart.FileHeader) (*ImageInf
 	}
 
 	return info, nil
+}
+
+// DecodeImage decodes an image from a reader
+func DecodeImage(r io.Reader) (image.Image, string, error) {
+	img, format, err := image.Decode(r)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to decode image: %w", err)
+	}
+	return img, format, nil
 }
 
 // isValidExtension checks if the file extension is supported
@@ -135,4 +146,76 @@ func GetAspectRatio(info *ImageInfo) float64 {
 		return 0
 	}
 	return float64(info.Width) / float64(info.Height)
+}
+
+// MaxDimensions defines maximum allowed dimensions for uploaded images
+const (
+	MaxImageWidth  = 2000
+	MaxImageHeight = 2000
+)
+
+// OptimizeImage resizes an image if it exceeds maximum dimensions
+// and returns the optimized image as bytes with the appropriate format
+func OptimizeImage(img image.Image, format string) ([]byte, error) {
+	bounds := img.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+
+	// Check if resizing is needed
+	needsResize := width > MaxImageWidth || height > MaxImageHeight
+
+	var resizedImg image.Image
+	if needsResize {
+		// Calculate new dimensions maintaining aspect ratio
+		newWidth, newHeight := calculateResizedDimensions(width, height, MaxImageWidth, MaxImageHeight)
+
+		// Create a new image with the target dimensions
+		dst := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
+
+		// Use high-quality scaling algorithm
+		draw.CatmullRom.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
+		resizedImg = dst
+	} else {
+		resizedImg = img
+	}
+
+	// Encode the image to bytes
+	var buf bytes.Buffer
+	switch format {
+	case "jpeg", "jpg":
+		// Use quality 85 for good balance between size and quality
+		if err := jpeg.Encode(&buf, resizedImg, &jpeg.Options{Quality: 85}); err != nil {
+			return nil, fmt.Errorf("failed to encode JPEG: %w", err)
+		}
+	case "png":
+		if err := png.Encode(&buf, resizedImg); err != nil {
+			return nil, fmt.Errorf("failed to encode PNG: %w", err)
+		}
+	default:
+		// For other formats (gif, webp), we can't easily re-encode, so return error
+		return nil, fmt.Errorf("optimization not supported for format: %s", format)
+	}
+
+	return buf.Bytes(), nil
+}
+
+// calculateResizedDimensions calculates new dimensions maintaining aspect ratio
+func calculateResizedDimensions(width, height, maxWidth, maxHeight int) (int, int) {
+	if width <= maxWidth && height <= maxHeight {
+		return width, height
+	}
+
+	widthRatio := float64(maxWidth) / float64(width)
+	heightRatio := float64(maxHeight) / float64(height)
+
+	// Use the smaller ratio to ensure both dimensions fit
+	ratio := widthRatio
+	if heightRatio < widthRatio {
+		ratio = heightRatio
+	}
+
+	newWidth := int(float64(width) * ratio)
+	newHeight := int(float64(height) * ratio)
+
+	return newWidth, newHeight
 }

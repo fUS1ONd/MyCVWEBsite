@@ -19,8 +19,16 @@ import (
 type MediaService interface {
 	Upload(ctx context.Context, file multipart.File, header *multipart.FileHeader, uploaderID int) (*domain.MediaFile, error)
 	GetByID(ctx context.Context, id int) (*domain.MediaFile, error)
+	GetFileReader(ctx context.Context, filename string) (io.ReadSeekCloser, string, error)
 	Delete(ctx context.Context, id int, uploaderID int) error
 	ListByUploader(ctx context.Context, uploaderID int) ([]domain.MediaFile, error)
+}
+
+// ReadSeekCloser combines io.Reader, io.Seeker, and io.Closer interfaces
+type ReadSeekCloser interface {
+	io.Reader
+	io.Seeker
+	io.Closer
 }
 
 type mediaService struct {
@@ -57,24 +65,56 @@ func (s *mediaService) Upload(ctx context.Context, file multipart.File, header *
 		return nil, fmt.Errorf("failed to create upload directory: %w", err)
 	}
 
-	// Save file to disk
-	outFile, err := os.Create(storagePath) // #nosec G304 - storagePath is constructed from controlled inputs
-	if err != nil {
-		return nil, fmt.Errorf("failed to create file: %w", err)
-	}
-	defer func() {
-		_ = outFile.Close() // Error ignored intentionally - file is already written
-	}()
-
-	// Reset file pointer before copying
+	// Reset file pointer to decode image
 	if seeker, ok := file.(io.Seeker); ok {
 		if _, err := seeker.Seek(0, io.SeekStart); err != nil {
 			return nil, fmt.Errorf("failed to reset file pointer: %w", err)
 		}
 	}
 
-	if _, err := io.Copy(outFile, file); err != nil {
-		_ = os.Remove(storagePath) // Cleanup on error
+	// Decode and optimize image (only for jpeg/png)
+	var fileData []byte
+	actualSize := header.Size
+
+	if info.Format == "jpeg" || info.Format == "png" {
+		// Decode image
+		img, _, err := imageproc.DecodeImage(file)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode image: %w", err)
+		}
+
+		// Optimize image
+		optimizedData, err := imageproc.OptimizeImage(img, info.Format)
+		if err != nil {
+			// If optimization fails, fall back to original file
+			if seeker, ok := file.(io.Seeker); ok {
+				if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+					return nil, fmt.Errorf("failed to reset file pointer: %w", err)
+				}
+			}
+			fileData, err = io.ReadAll(file)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read file: %w", err)
+			}
+		} else {
+			fileData = optimizedData
+			actualSize = int64(len(optimizedData))
+		}
+	} else {
+		// For other formats (gif, webp), save as-is
+		if seeker, ok := file.(io.Seeker); ok {
+			if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+				return nil, fmt.Errorf("failed to reset file pointer: %w", err)
+			}
+		}
+		fileData, err = io.ReadAll(file)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read file: %w", err)
+		}
+	}
+
+	// Save file to disk
+	if err := os.WriteFile(storagePath, fileData, 0600); err != nil {
 		return nil, fmt.Errorf("failed to save file: %w", err)
 	}
 
@@ -82,7 +122,7 @@ func (s *mediaService) Upload(ctx context.Context, file multipart.File, header *
 	media := &domain.MediaFile{
 		Filename:    header.Filename,
 		MimeType:    info.Format,
-		Size:        info.SizeBytes,
+		Size:        actualSize,
 		UploaderID:  uploaderID,
 		StoragePath: storagePath,
 	}
@@ -110,6 +150,37 @@ func (s *mediaService) GetByID(ctx context.Context, id int) (*domain.MediaFile, 
 	media.URL = s.generateURL(filename)
 
 	return media, nil
+}
+
+// GetFileReader opens a media file for reading and returns a reader with MIME type.
+func (s *mediaService) GetFileReader(_ context.Context, filename string) (io.ReadSeekCloser, string, error) {
+	// Construct storage path
+	storagePath := filepath.Join(s.uploadPath, filepath.Base(filename)) // Use Base to prevent directory traversal
+
+	// Check if file exists
+	info, err := os.Stat(storagePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, "", derr.ErrNotFound
+		}
+		return nil, "", fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	// Check if it's a regular file
+	if !info.Mode().IsRegular() {
+		return nil, "", derr.ErrNotFound
+	}
+
+	// Open file for reading
+	file, err := os.Open(storagePath) // #nosec G304 - filename is sanitized with filepath.Base
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to open file: %w", err)
+	}
+
+	// Determine MIME type from filename
+	mimeType := imageproc.GetMimeType(filename)
+
+	return file, mimeType, nil
 }
 
 // Delete removes a media file (both from storage and database).

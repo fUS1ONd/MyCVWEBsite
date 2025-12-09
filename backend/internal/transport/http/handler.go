@@ -46,6 +46,9 @@ func (h *Handler) InitRoutes() http.Handler {
 	r.Get("/health", h.health)
 	r.Get("/ready", h.ready)
 
+	// Media file serving (public, with caching)
+	r.Get("/media/{filename}", h.serveMediaFile)
+
 	// Auth routes
 	r.Route("/auth", func(r chi.Router) {
 		r.Get("/{provider}", h.authLogin)

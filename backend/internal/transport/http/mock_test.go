@@ -218,6 +218,14 @@ func (m *MockMediaService) GetByID(ctx context.Context, id int) (*domain.MediaFi
 	return args.Get(0).(*domain.MediaFile), args.Error(1)
 }
 
+func (m *MockMediaService) GetFileReader(ctx context.Context, filename string) (io.ReadSeekCloser, string, error) {
+	args := m.Called(ctx, filename)
+	if args.Get(0) == nil {
+		return nil, "", args.Error(2)
+	}
+	return args.Get(0).(io.ReadSeekCloser), args.String(1), args.Error(2)
+}
+
 func (m *MockMediaService) Delete(ctx context.Context, id int, uploaderID int) error {
 	args := m.Called(ctx, id, uploaderID)
 	return args.Error(0)

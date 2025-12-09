@@ -163,6 +163,7 @@ export default function Article() {
             src={post.cover_image.url}
             alt={post.title}
             className="w-full h-[400px] object-cover rounded-lg"
+            loading="lazy"
           />
         )}
 

@@ -123,7 +123,7 @@ export function PostCard({ post }: PostCardProps) {
         </div>
 
         {/* Action Bar */}
-        <div className="flex items-center gap-4 pt-4 border-t">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 pt-4 border-t">
           <Button
             variant="ghost"
             size="sm"

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"personal-web-platform/internal/domain/derr"
 
@@ -148,4 +149,35 @@ func (h *Handler) listMedia(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(files); err != nil {
 		h.log.Error("failed to encode media list response", "error", err)
 	}
+}
+
+// serveMediaFile handles GET /media/{filename} - serve actual media file
+func (h *Handler) serveMediaFile(w http.ResponseWriter, r *http.Request) {
+	filename := chi.URLParam(r, "filename")
+	if filename == "" {
+		RespondBadRequest(w, "filename is required")
+		return
+	}
+
+	// Get file reader from media service
+	reader, mimeType, err := h.services.Media.GetFileReader(r.Context(), filename)
+	if err != nil {
+		h.log.Error("failed to get media file", "error", err, "filename", filename)
+		if errors.Is(err, derr.ErrNotFound) {
+			RespondNotFound(w, "media file not found")
+			return
+		}
+		RespondInternalError(w)
+		return
+	}
+	defer func() {
+		_ = reader.Close()
+	}()
+
+	// Set cache headers for immutable files (1 year)
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	w.Header().Set("Content-Type", mimeType)
+
+	// Serve file (use zero time since we don't track modification time)
+	http.ServeContent(w, r, filename, time.Time{}, reader)
 }
