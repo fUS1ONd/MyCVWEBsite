@@ -80,6 +80,7 @@ func (h *Handler) InitRoutes() http.Handler {
 
 		// Admin endpoints
 		r.Group(func(r chi.Router) {
+			r.Use(h.AuthRequired)
 			r.Use(h.AdminRequired)
 			r.Put("/admin/profile", h.updateProfile)
 			r.Post("/admin/posts", h.createPost)
