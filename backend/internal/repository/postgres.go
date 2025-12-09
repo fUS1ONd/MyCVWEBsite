@@ -89,6 +89,7 @@ type Repositories struct {
 	Session    SessionRepository
 	Post       PostRepository
 	Comment    CommentRepository
+	Media      MediaRepository
 	Transactor Transactor
 	db         *pgxpool.Pool
 }
@@ -101,6 +102,7 @@ func NewRepositories(db *pgxpool.Pool, _ *config.Config) *Repositories { //nolin
 		Session:    NewSessionRepo(db),
 		Post:       NewPostRepo(db),
 		Comment:    NewCommentRepo(db),
+		Media:      NewMediaRepository(db),
 		Transactor: &txManager{pool: db},
 		db:         db,
 	}

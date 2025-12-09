@@ -15,6 +15,7 @@ type Services struct {
 	Auth    AuthService
 	Post    PostService
 	Comment CommentService
+	Media   MediaService
 	repos   *repository.Repositories
 	cfg     *config.Config
 }
@@ -26,6 +27,7 @@ func NewServices(repos *repository.Repositories, cfg *config.Config, log *slog.L
 		Auth:    NewAuthService(repos.Auth, repos.Session, repos.Transactor, cfg, log),
 		Post:    NewPostService(repos.Post),
 		Comment: NewCommentService(repos.Comment, repos.Post),
+		Media:   NewMediaService(repos.Media, cfg.Media.UploadPath, cfg.Media.BaseURL),
 		repos:   repos,
 		cfg:     cfg,
 	}

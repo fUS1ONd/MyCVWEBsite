@@ -16,6 +16,9 @@ var (
 	// ErrPermission indicates insufficient permissions
 	ErrPermission = errors.New("permission denied")
 
+	// ErrUnauthorized indicates authentication failure or lack of credentials
+	ErrUnauthorized = errors.New("unauthorized")
+
 	// ErrInternal indicates an unexpected internal error
 	ErrInternal = errors.New("internal error")
 )
