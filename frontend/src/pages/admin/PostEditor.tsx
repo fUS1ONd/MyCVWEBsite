@@ -43,6 +43,7 @@ export default function PostEditor() {
     register,
     handleSubmit,
     setValue,
+    reset,
     watch,
     formState: { isDirty },
   } = useForm<PostFormData>({
@@ -58,14 +59,16 @@ export default function PostEditor() {
 
   useEffect(() => {
     if (post) {
-      setValue('title', post.title);
-      setValue('slug', post.slug);
-      setValue('content', post.content);
-      setValue('preview', post.preview);
-      setValue('published', post.published);
-      setValue('cover_image', post.cover_image || '');
+      reset({
+        title: post.title,
+        slug: post.slug,
+        content: post.content,
+        preview: post.preview,
+        published: post.published,
+        cover_image: post.cover_image || '',
+      });
     }
-  }, [post, setValue]);
+  }, [post, reset]);
 
   const mutation = useMutation({
     mutationFn: async (data: PostFormData) => {

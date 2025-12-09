@@ -52,6 +52,33 @@ func (h *Handler) listPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// getPostByID handles GET /api/v1/admin/posts/{id} - get post details by ID
+func (h *Handler) getPostByID(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid post id", http.StatusBadRequest)
+		return
+	}
+
+	var userID int
+	if user := h.getUserFromContext(r.Context()); user != nil {
+		userID = user.ID
+	}
+
+	post, err := h.services.Post.GetPostByID(r.Context(), id, userID)
+	if err != nil {
+		h.log.Error("failed to get post by id", "error", err, "id", id)
+		http.Error(w, "post not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(post); err != nil {
+		h.log.Error("failed to encode post response", "error", err)
+	}
+}
+
 // getPostBySlug handles GET /api/v1/posts/{slug} - get post details by slug
 func (h *Handler) getPostBySlug(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")

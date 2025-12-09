@@ -91,6 +91,7 @@ func (h *Handler) InitRoutes() http.Handler {
 			r.Put("/admin/profile", h.updateProfile)
 			r.Post("/admin/upload", h.uploadImage)
 			r.Post("/admin/posts", h.createPost)
+			r.Get("/admin/posts/{id}", h.getPostByID)
 			r.Put("/admin/posts/{id}", h.updatePost)
 			r.Delete("/admin/posts/{id}", h.deletePost)
 		})
