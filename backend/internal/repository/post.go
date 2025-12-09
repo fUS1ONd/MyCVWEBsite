@@ -33,6 +33,7 @@ func NewPostRepo(db *pgxpool.Pool) PostRepository {
 func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post, error) {
 	var createdPost domain.Post
 	var publishedAt *time.Time
+	var publishedAtScan *time.Time
 	db := GetQueryEngine(ctx, r.db)
 
 	if post.Published {
@@ -64,7 +65,7 @@ func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post,
 		&createdPost.Preview,
 		&createdPost.AuthorID,
 		&createdPost.Published,
-		&createdPost.PublishedAt,
+		&publishedAtScan,
 		&createdPost.CoverImage,
 		&createdPost.ReadTimeMinutes,
 		&createdPost.LikesCount,
@@ -76,12 +77,17 @@ func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post,
 		return nil, fmt.Errorf("failed to create post: %w", err)
 	}
 
+	if publishedAtScan != nil {
+		createdPost.PublishedAt = *publishedAtScan
+	}
+
 	return &createdPost, nil
 }
 
 func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post, error) {
 	var updatedPost domain.Post
 	var publishedAt *time.Time
+	var publishedAtScan *time.Time
 	db := GetQueryEngine(ctx, r.db)
 
 	// If publishing for the first time, set published_at
@@ -117,7 +123,7 @@ func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post,
 		&updatedPost.Preview,
 		&updatedPost.AuthorID,
 		&updatedPost.Published,
-		&updatedPost.PublishedAt,
+		&publishedAtScan,
 		&updatedPost.CoverImage,
 		&updatedPost.ReadTimeMinutes,
 		&updatedPost.LikesCount,
@@ -127,6 +133,10 @@ func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update post: %w", err)
+	}
+
+	if publishedAtScan != nil {
+		updatedPost.PublishedAt = *publishedAtScan
 	}
 
 	return &updatedPost, nil
@@ -163,6 +173,7 @@ func (r *postRepo) GetByID(ctx context.Context, id, userID int) (*domain.Post, e
 	`
 
 	var authorEmail string
+	var publishedAt *time.Time
 
 	err := db.QueryRow(ctx, query, id, userID).Scan(
 		&post.ID,
@@ -172,7 +183,7 @@ func (r *postRepo) GetByID(ctx context.Context, id, userID int) (*domain.Post, e
 		&post.Preview,
 		&post.AuthorID,
 		&post.Published,
-		&post.PublishedAt,
+		&publishedAt,
 		&post.CoverImage,
 		&post.ReadTimeMinutes,
 		&post.LikesCount,
@@ -187,6 +198,10 @@ func (r *postRepo) GetByID(ctx context.Context, id, userID int) (*domain.Post, e
 			return nil, nil // Post not found
 		}
 		return nil, fmt.Errorf("failed to get post by id: %w", err)
+	}
+
+	if publishedAt != nil {
+		post.PublishedAt = *publishedAt
 	}
 
 	// Set author if exists
@@ -215,6 +230,7 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string, userID int) (*dom
 	`
 
 	var authorEmail string
+	var publishedAt *time.Time
 
 	err := db.QueryRow(ctx, query, slug, userID).Scan(
 		&post.ID,
@@ -224,7 +240,7 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string, userID int) (*dom
 		&post.Preview,
 		&post.AuthorID,
 		&post.Published,
-		&post.PublishedAt,
+		&publishedAt,
 		&post.CoverImage,
 		&post.ReadTimeMinutes,
 		&post.LikesCount,
@@ -239,6 +255,10 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string, userID int) (*dom
 			return nil, nil // Post not found
 		}
 		return nil, fmt.Errorf("failed to get post by slug: %w", err)
+	}
+
+	if publishedAt != nil {
+		post.PublishedAt = *publishedAt
 	}
 
 	// Set author if exists
@@ -325,6 +345,7 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 	for rows.Next() {
 		var post domain.Post
 		var authorEmail string
+		var publishedAt *time.Time
 
 		err := rows.Scan(
 			&post.ID,
@@ -334,7 +355,7 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 			&post.Preview,
 			&post.AuthorID,
 			&post.Published,
-			&post.PublishedAt,
+			&publishedAt,
 			&post.CoverImage,
 			&post.ReadTimeMinutes,
 			&post.LikesCount,
@@ -346,6 +367,10 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan post: %w", err)
+		}
+
+		if publishedAt != nil {
+			post.PublishedAt = *publishedAt
 		}
 
 		// Set author if exists
