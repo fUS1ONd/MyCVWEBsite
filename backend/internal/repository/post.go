@@ -16,8 +16,8 @@ type PostRepository interface {
 	Create(ctx context.Context, post *domain.Post) (*domain.Post, error)
 	Update(ctx context.Context, post *domain.Post) (*domain.Post, error)
 	Delete(ctx context.Context, id int) error
-	GetByID(ctx context.Context, id int) (*domain.Post, error)
-	GetBySlug(ctx context.Context, slug string) (*domain.Post, error)
+	GetByID(ctx context.Context, id, userID int) (*domain.Post, error)
+	GetBySlug(ctx context.Context, slug string, userID int) (*domain.Post, error)
 	List(ctx context.Context, req *domain.ListPostsRequest) ([]domain.Post, int, error)
 }
 
@@ -148,13 +148,14 @@ func (r *postRepo) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) { //nolint:dupl // similar to GetBySlug but different query
+func (r *postRepo) GetByID(ctx context.Context, id, userID int) (*domain.Post, error) { //nolint:dupl // similar to GetBySlug but different query
 	var post domain.Post
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
 		       p.cover_image_id, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
+		       EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $2) as is_liked,
 		       u.email,
 		       m.id, m.filename, m.mime_type, m.size, m.storage_path, m.uploaded_at
 		FROM posts p
@@ -170,7 +171,7 @@ func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) { 
 	var mediaFilename, mediaMimeType, mediaStoragePath *string
 	var mediaUploadedAt *time.Time
 
-	err := db.QueryRow(ctx, query, id).Scan(
+	err := db.QueryRow(ctx, query, id, userID).Scan(
 		&post.ID,
 		&post.Title,
 		&post.Slug,
@@ -185,6 +186,7 @@ func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) { 
 		&post.CommentsCount,
 		&post.CreatedAt,
 		&post.UpdatedAt,
+		&post.IsLiked,
 		&authorEmail,
 		&mediaID,
 		&mediaFilename,
@@ -226,13 +228,14 @@ func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) { 
 	return &post, nil
 }
 
-func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, error) { //nolint:dupl // similar to GetByID but different query
+func (r *postRepo) GetBySlug(ctx context.Context, slug string, userID int) (*domain.Post, error) { //nolint:dupl // similar to GetByID but different query
 	var post domain.Post
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
 		       p.cover_image_id, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
+		       EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $2) as is_liked,
 		       u.email,
 		       m.id, m.filename, m.mime_type, m.size, m.storage_path, m.uploaded_at
 		FROM posts p
@@ -248,7 +251,7 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, er
 	var mediaFilename, mediaMimeType, mediaStoragePath *string
 	var mediaUploadedAt *time.Time
 
-	err := db.QueryRow(ctx, query, slug).Scan(
+	err := db.QueryRow(ctx, query, slug, userID).Scan(
 		&post.ID,
 		&post.Title,
 		&post.Slug,
@@ -263,6 +266,7 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, er
 		&post.CommentsCount,
 		&post.CreatedAt,
 		&post.UpdatedAt,
+		&post.IsLiked,
 		&authorEmail,
 		&mediaID,
 		&mediaFilename,
@@ -325,6 +329,7 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 	baseQuery := `
 		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
 		       p.cover_image_id, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
+		       EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $1) as is_liked,
 		       u.email,
 		       m.id, m.filename, m.mime_type, m.size, m.storage_path, m.uploaded_at
 		FROM posts p
@@ -334,8 +339,9 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 	countQuery := `SELECT COUNT(*) FROM posts p`
 
 	var whereClause string
-	var args []interface{}
-	argIndex := 1
+	// $1 is always UserID
+	args := []interface{}{req.UserID}
+	argIndex := 2
 
 	// Filter by published status if specified
 	if req.Published != nil {
@@ -353,8 +359,15 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 
 	// Execute count query
 	var totalCount int
-	countArgs := args[:len(args)-2] // Exclude limit and offset for count query
-	err := db.QueryRow(ctx, countQuery+whereClause, countArgs...).Scan(&totalCount)
+	// The where clause uses $2. If we run count query, we need to shift indices or prepare separate query.
+	// Let's just fix the indices in string builder.
+	countWhere := ""
+	countArgs := []interface{}{}
+	if req.Published != nil {
+		countWhere = " WHERE p.published = $1"
+		countArgs = append(countArgs, *req.Published)
+	}
+	err := db.QueryRow(ctx, countQuery+countWhere, countArgs...).Scan(&totalCount)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count posts: %w", err)
 	}
@@ -366,7 +379,7 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 	}
 	defer rows.Close()
 
-	var posts []domain.Post
+	posts := make([]domain.Post, 0)
 	for rows.Next() {
 		var post domain.Post
 		var authorEmail string
@@ -390,6 +403,7 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 			&post.CommentsCount,
 			&post.CreatedAt,
 			&post.UpdatedAt,
+			&post.IsLiked,
 			&authorEmail,
 			&mediaID,
 			&mediaFilename,

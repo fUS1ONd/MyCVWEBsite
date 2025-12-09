@@ -73,7 +73,7 @@ export function CommentItem({
   };
 
   const isAuthor = user?.id === comment.user_id;
-  const canReply = isAuthenticated && depth < 3; // Limit nesting depth
+  const canReply = isAuthenticated && depth < 10; // Limit nesting depth
 
   return (
     <div className="space-y-3">

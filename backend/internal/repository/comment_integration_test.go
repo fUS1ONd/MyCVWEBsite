@@ -143,7 +143,7 @@ func TestCommentRepository_Integration(t *testing.T) {
 		}
 
 		// Get all comments for the post
-		comments, err := commentRepo.GetByPostID(ctx, post.ID)
+		comments, err := commentRepo.GetByPostID(ctx, post.ID, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(comments), 5)
 
@@ -167,7 +167,7 @@ func TestCommentRepository_Integration(t *testing.T) {
 		require.NoError(t, err)
 
 		// Get comments - repository returns all comments (filtering is done at service layer)
-		comments, err := commentRepo.GetByPostID(ctx, post.ID)
+		comments, err := commentRepo.GetByPostID(ctx, post.ID, 0)
 		require.NoError(t, err)
 
 		// Find the deleted comment and verify DeletedAt is set

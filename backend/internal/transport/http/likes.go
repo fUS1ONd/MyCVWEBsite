@@ -33,9 +33,13 @@ func (h *Handler) togglePostLike(w http.ResponseWriter, r *http.Request) { //nol
 		return
 	}
 
+	// Get updated likes count
+	count, _ := h.services.Like.GetPostLikesCount(r.Context(), postID)
+
 	// Return response with like status
 	response := map[string]interface{}{
-		"liked": liked,
+		"is_liked":    liked,
+		"likes_count": count,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -69,9 +73,13 @@ func (h *Handler) toggleCommentLike(w http.ResponseWriter, r *http.Request) { //
 		return
 	}
 
+	// Get updated likes count
+	count, _ := h.services.Like.GetCommentLikesCount(r.Context(), commentID)
+
 	// Return response with like status
 	response := map[string]interface{}{
-		"liked": liked,
+		"is_liked":    liked,
+		"likes_count": count,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

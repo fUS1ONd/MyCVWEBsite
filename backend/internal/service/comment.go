@@ -15,7 +15,7 @@ type CommentService interface {
 	UpdateComment(ctx context.Context, commentID int, req *domain.UpdateCommentRequest, userID int, isAdmin bool) (*domain.Comment, error)
 	DeleteComment(ctx context.Context, commentID int, userID int, isAdmin bool) error
 	GetCommentByID(ctx context.Context, id int) (*domain.Comment, error)
-	GetCommentsByPostSlug(ctx context.Context, slug string) ([]domain.Comment, error)
+	GetCommentsByPostSlug(ctx context.Context, slug string, userID int) ([]domain.Comment, error)
 }
 
 type commentService struct {
@@ -38,7 +38,7 @@ func (s *commentService) CreateComment(ctx context.Context, postID int, req *dom
 	}
 
 	// Check if post exists
-	post, err := s.postRepo.GetByID(ctx, postID)
+	post, err := s.postRepo.GetByID(ctx, postID, 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get post: %w", err)
 	}
@@ -155,9 +155,9 @@ func (s *commentService) GetCommentByID(ctx context.Context, id int) (*domain.Co
 	return comment, nil
 }
 
-func (s *commentService) GetCommentsByPostSlug(ctx context.Context, slug string) ([]domain.Comment, error) {
+func (s *commentService) GetCommentsByPostSlug(ctx context.Context, slug string, userID int) ([]domain.Comment, error) {
 	// Get post by slug
-	post, err := s.postRepo.GetBySlug(ctx, slug)
+	post, err := s.postRepo.GetBySlug(ctx, slug, 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get post: %w", err)
 	}
@@ -166,7 +166,7 @@ func (s *commentService) GetCommentsByPostSlug(ctx context.Context, slug string)
 	}
 
 	// Get comments
-	comments, err := s.commentRepo.GetByPostID(ctx, post.ID)
+	comments, err := s.commentRepo.GetByPostID(ctx, post.ID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get comments: %w", err)
 	}

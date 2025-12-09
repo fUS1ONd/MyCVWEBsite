@@ -80,16 +80,16 @@ func (m *MockPostService) DeletePost(ctx context.Context, postID int, userID int
 	return args.Error(0)
 }
 
-func (m *MockPostService) GetPostByID(ctx context.Context, id int) (*domain.Post, error) {
-	args := m.Called(ctx, id)
+func (m *MockPostService) GetPostByID(ctx context.Context, id, userID int) (*domain.Post, error) {
+	args := m.Called(ctx, id, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.Post), args.Error(1)
 }
 
-func (m *MockPostService) GetPostBySlug(ctx context.Context, slug string) (*domain.Post, error) {
-	args := m.Called(ctx, slug)
+func (m *MockPostService) GetPostBySlug(ctx context.Context, slug string, userID int) (*domain.Post, error) {
+	args := m.Called(ctx, slug, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -137,8 +137,8 @@ func (m *MockCommentService) GetCommentByID(ctx context.Context, id int) (*domai
 	return args.Get(0).(*domain.Comment), args.Error(1)
 }
 
-func (m *MockCommentService) GetCommentsByPostSlug(ctx context.Context, slug string) ([]domain.Comment, error) {
-	args := m.Called(ctx, slug)
+func (m *MockCommentService) GetCommentsByPostSlug(ctx context.Context, slug string, userID int) ([]domain.Comment, error) {
+	args := m.Called(ctx, slug, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

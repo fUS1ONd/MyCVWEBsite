@@ -34,6 +34,10 @@ func (h *Handler) listPosts(w http.ResponseWriter, r *http.Request) {
 		req.Published = &published
 	}
 
+	if user := h.getUserFromContext(r.Context()); user != nil {
+		req.UserID = user.ID
+	}
+
 	// Get posts
 	response, err := h.services.Post.ListPosts(r.Context(), req)
 	if err != nil {
@@ -56,7 +60,12 @@ func (h *Handler) getPostBySlug(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := h.services.Post.GetPostBySlug(r.Context(), slug)
+	var userID int
+	if user := h.getUserFromContext(r.Context()); user != nil {
+		userID = user.ID
+	}
+
+	post, err := h.services.Post.GetPostBySlug(r.Context(), slug, userID)
 	if err != nil {
 		h.log.Error("failed to get post by slug", "error", err, "slug", slug)
 		http.Error(w, "post not found", http.StatusNotFound)

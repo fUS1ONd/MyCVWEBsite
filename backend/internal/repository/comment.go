@@ -17,7 +17,7 @@ type CommentRepository interface {
 	Update(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
 	Delete(ctx context.Context, id int) error
 	GetByID(ctx context.Context, id int) (*domain.Comment, error)
-	GetByPostID(ctx context.Context, postID int) ([]domain.Comment, error)
+	GetByPostID(ctx context.Context, postID, userID int) ([]domain.Comment, error)
 }
 
 type commentRepo struct {
@@ -57,6 +57,12 @@ func (r *commentRepo) Create(ctx context.Context, comment *domain.Comment) (*dom
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create comment: %w", err)
+	}
+
+	// Increment post comments count
+	_, err = db.Exec(ctx, "UPDATE posts SET comments_count = comments_count + 1 WHERE id = $1", comment.PostID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to increment comments count: %w", err)
 	}
 
 	return &createdComment, nil
@@ -115,6 +121,13 @@ func (r *commentRepo) Delete(ctx context.Context, id int) error {
 		return fmt.Errorf("comment not found or already deleted")
 	}
 
+	// Get post_id to decrement count
+	var postID int
+	if err := db.QueryRow(ctx, "SELECT post_id FROM comments WHERE id = $1", id).Scan(&postID); err == nil {
+		// Decrement post comments count
+		_, _ = db.Exec(ctx, "UPDATE posts SET comments_count = GREATEST(comments_count - 1, 0) WHERE id = $1", postID)
+	}
+
 	return nil
 }
 
@@ -164,18 +177,19 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 	return &comment, nil
 }
 
-func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Comment, error) {
+func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]domain.Comment, error) {
 	db := GetQueryEngine(ctx, r.db)
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.likes_count, c.created_at, c.updated_at, c.deleted_at,
-		       u.email, u.role
+		       u.email, u.role,
+		       EXISTS(SELECT 1 FROM comment_likes cl WHERE cl.comment_id = c.id AND cl.user_id = $2) as is_liked
 		FROM comments c
 		LEFT JOIN users u ON c.user_id = u.id
 		WHERE c.post_id = $1
 		ORDER BY c.created_at ASC
 	`
 
-	rows, err := db.Query(ctx, query, postID)
+	rows, err := db.Query(ctx, query, postID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get comments by post id: %w", err)
 	}
@@ -183,7 +197,7 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Com
 
 	var comments []domain.Comment
 	commentsMap := make(map[int]*domain.Comment)
-
+	var rawComments []*domain.Comment
 	// First pass: scan all comments
 	for rows.Next() {
 		var comment domain.Comment
@@ -202,6 +216,7 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Com
 			&comment.DeletedAt,
 			&userEmail,
 			&userRole,
+			&comment.IsLiked,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan comment: %w", err)
@@ -217,9 +232,11 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Com
 		}
 
 		// Initialize replies slice
-		comment.Replies = []domain.Comment{}
+		comment.Replies = []*domain.Comment{}
 
-		commentsMap[comment.ID] = &comment
+		ptr := &comment
+		commentsMap[comment.ID] = ptr
+		rawComments = append(rawComments, ptr)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -227,15 +244,20 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Com
 	}
 
 	// Second pass: build tree structure
-	for _, comment := range commentsMap {
-		if comment.ParentID == nil {
-			// Top-level comment
-			comments = append(comments, *comment)
-		} else {
+	// We iterate over rawComments to preserve order
+	for _, comment := range rawComments {
+		if comment.ParentID != nil {
 			// Nested comment - add to parent's replies
 			if parent, ok := commentsMap[*comment.ParentID]; ok {
-				parent.Replies = append(parent.Replies, *comment)
+				parent.Replies = append(parent.Replies, comment)
 			}
+		}
+	}
+
+	// Third pass: collect roots
+	for _, comment := range rawComments {
+		if comment.ParentID == nil {
+			comments = append(comments, *comment)
 		}
 	}
 

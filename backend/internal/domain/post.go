@@ -55,6 +55,7 @@ type ListPostsRequest struct {
 	Page      int   `json:"page" validate:"omitempty,min=1"`
 	Limit     int   `json:"limit" validate:"omitempty,min=1,max=100"`
 	Published *bool `json:"published,omitempty"`
+	UserID    int   `json:"user_id,omitempty"`
 }
 
 // PostsListResponse represents paginated posts response

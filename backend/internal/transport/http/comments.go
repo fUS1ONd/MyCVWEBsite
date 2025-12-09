@@ -18,7 +18,12 @@ func (h *Handler) getCommentsByPostSlug(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	comments, err := h.services.Comment.GetCommentsByPostSlug(r.Context(), slug)
+	var userID int
+	if user := h.getUserFromContext(r.Context()); user != nil {
+		userID = user.ID
+	}
+
+	comments, err := h.services.Comment.GetCommentsByPostSlug(r.Context(), slug, userID)
 	if err != nil {
 		h.log.Error("failed to get comments by post slug", "error", err, "slug", slug)
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -56,7 +61,7 @@ func (h *Handler) createComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get post by slug to get post ID
-	post, err := h.services.Post.GetPostBySlug(r.Context(), slug)
+	post, err := h.services.Post.GetPostBySlug(r.Context(), slug, user.ID)
 	if err != nil {
 		h.log.Error("failed to get post by slug", "error", err, "slug", slug)
 		http.Error(w, "post not found", http.StatusNotFound)

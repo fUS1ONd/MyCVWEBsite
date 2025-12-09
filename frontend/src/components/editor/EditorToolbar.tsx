@@ -32,6 +32,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ImageUpload } from './ImageUpload';
 
 interface EditorToolbarProps {
   editor: Editor;
@@ -57,6 +59,11 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       setImageUrl('');
       setIsImageDialogOpen(false);
     }
+  };
+
+  const handleImageUpload = (url: string) => {
+    editor.chain().focus().setImage({ src: url }).run();
+    setIsImageDialogOpen(false);
   };
 
   const ToolbarButton = ({
@@ -273,30 +280,42 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
             <DialogTitle>Add Image</DialogTitle>
             <DialogDescription>Enter the image URL or upload an image</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="image-url">Image URL</Label>
-              <Input
-                id="image-url"
-                placeholder="https://example.com/image.jpg"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addImage();
-                  }
-                }}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsImageDialogOpen(false)}>
-                Cancel
-              </Button>
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="upload">Upload</TabsTrigger>
+              <TabsTrigger value="url">URL</TabsTrigger>
+            </TabsList>
+            <TabsContent value="upload" className="pt-4">
+              <ImageUpload onUpload={handleImageUpload} label="Upload Image" />
+            </TabsContent>
+            <TabsContent value="url" className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="image-url">Image URL</Label>
+                <Input
+                  id="image-url"
+                  placeholder="https://example.com/image.jpg"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addImage();
+                    }
+                  }}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button type="button" variant="outline" onClick={() => setIsImageDialogOpen(false)}>
+              Cancel
+            </Button>
+            {imageUrl && (
               <Button type="button" onClick={addImage}>
                 Add Image
               </Button>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

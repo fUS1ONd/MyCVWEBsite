@@ -18,7 +18,7 @@ export function CommentThread({
   setReplyingTo,
   depth = 0,
 }: CommentThreadProps) {
-  const replies = allComments.filter((c) => c.parent_id === comment.id);
+  const replies = comment.replies || [];
 
   const borderColors = [
     'border-primary/30',
@@ -40,7 +40,7 @@ export function CommentThread({
       />
 
       {replies.length > 0 && (
-        <div className={`ml-8 space-y-4 border-l-2 ${borderColor} pl-6`}>
+        <div className={`ml-3 sm:ml-6 space-y-4 border-l-2 ${borderColor} pl-3 sm:pl-4`}>
           {replies.map((reply) => (
             <CommentThread
               key={reply.id}

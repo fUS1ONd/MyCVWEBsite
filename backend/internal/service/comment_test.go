@@ -46,8 +46,8 @@ func (m *MockCommentRepository) GetByID(ctx context.Context, id int) (*domain.Co
 	return args.Get(0).(*domain.Comment), args.Error(1) //nolint:errcheck // mock method
 }
 
-func (m *MockCommentRepository) GetByPostID(ctx context.Context, postID int) ([]domain.Comment, error) {
-	args := m.Called(ctx, postID)
+func (m *MockCommentRepository) GetByPostID(ctx context.Context, postID, userID int) ([]domain.Comment, error) {
+	args := m.Called(ctx, postID, userID)
 	return args.Get(0).([]domain.Comment), args.Error(1) //nolint:errcheck // mock method
 }
 
@@ -70,7 +70,7 @@ func TestCommentService_CreateComment(t *testing.T) {
 			},
 			userID: 1,
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID: 1,
 				}, nil)
 			},
@@ -93,7 +93,7 @@ func TestCommentService_CreateComment(t *testing.T) {
 			},
 			userID: 2,
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID: 1,
 				}, nil)
 			},
@@ -120,7 +120,7 @@ func TestCommentService_CreateComment(t *testing.T) {
 			},
 			userID: 1,
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 999).Return(nil, nil)
+				m.On("GetByID", mock.Anything, 999, 0).Return(nil, nil)
 			},
 			setupCommentMock: func(_ *MockCommentRepository) {},
 			wantErr:          true,
@@ -135,7 +135,7 @@ func TestCommentService_CreateComment(t *testing.T) {
 			},
 			userID: 1,
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID: 1,
 				}, nil)
 			},
@@ -154,7 +154,7 @@ func TestCommentService_CreateComment(t *testing.T) {
 			},
 			userID: 1,
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID: 1,
 				}, nil)
 			},
@@ -479,13 +479,13 @@ func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
 			name:     "success - comments found",
 			postSlug: "test-post",
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "test-post").Return(&domain.Post{
+				m.On("GetBySlug", mock.Anything, "test-post", 0).Return(&domain.Post{
 					ID:   1,
 					Slug: "test-post",
 				}, nil)
 			},
 			setupCommentMock: func(m *MockCommentRepository) {
-				m.On("GetByPostID", mock.Anything, 1).Return([]domain.Comment{
+				m.On("GetByPostID", mock.Anything, 1, 0).Return([]domain.Comment{
 					{ID: 1, PostID: 1, UserID: 1, Content: "First comment"},
 					{ID: 2, PostID: 1, UserID: 2, Content: "Second comment"},
 					{ID: 3, PostID: 1, UserID: 1, Content: "Reply to first", ParentID: intPtr(1)},
@@ -498,13 +498,13 @@ func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
 			name:     "success - no comments for post",
 			postSlug: "empty-post",
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "empty-post").Return(&domain.Post{
+				m.On("GetBySlug", mock.Anything, "empty-post", 0).Return(&domain.Post{
 					ID:   2,
 					Slug: "empty-post",
 				}, nil)
 			},
 			setupCommentMock: func(m *MockCommentRepository) {
-				m.On("GetByPostID", mock.Anything, 2).Return([]domain.Comment{}, nil)
+				m.On("GetByPostID", mock.Anything, 2, 0).Return([]domain.Comment{}, nil)
 			},
 			wantErr:       false,
 			expectedCount: 0,
@@ -513,7 +513,7 @@ func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
 			name:     "error - post not found",
 			postSlug: "non-existent",
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "non-existent").Return(nil, nil)
+				m.On("GetBySlug", mock.Anything, "non-existent", 0).Return(nil, nil)
 			},
 			setupCommentMock: func(_ *MockCommentRepository) {},
 			wantErr:          true,
@@ -523,7 +523,7 @@ func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
 			name:     "error - post repository error",
 			postSlug: "error-post",
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "error-post").Return(nil, errors.New("database error"))
+				m.On("GetBySlug", mock.Anything, "error-post", 0).Return(nil, errors.New("database error"))
 			},
 			setupCommentMock: func(_ *MockCommentRepository) {},
 			wantErr:          true,
@@ -533,13 +533,13 @@ func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
 			name:     "error - comment repository error",
 			postSlug: "test-post",
 			setupPostMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "test-post").Return(&domain.Post{
+				m.On("GetBySlug", mock.Anything, "test-post", 0).Return(&domain.Post{
 					ID:   1,
 					Slug: "test-post",
 				}, nil)
 			},
 			setupCommentMock: func(m *MockCommentRepository) {
-				m.On("GetByPostID", mock.Anything, 1).Return([]domain.Comment{}, errors.New("database error"))
+				m.On("GetByPostID", mock.Anything, 1, 0).Return([]domain.Comment{}, errors.New("database error"))
 			},
 			wantErr:     true,
 			errContains: "failed to get comments",
@@ -554,7 +554,7 @@ func TestCommentService_GetCommentsByPostSlug(t *testing.T) {
 			tt.setupCommentMock(mockCommentRepo)
 
 			service := NewCommentService(mockCommentRepo, mockPostRepo)
-			comments, err := service.GetCommentsByPostSlug(context.Background(), tt.postSlug)
+			comments, err := service.GetCommentsByPostSlug(context.Background(), tt.postSlug, 0)
 
 			if tt.wantErr {
 				assert.Error(t, err)

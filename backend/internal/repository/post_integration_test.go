@@ -49,7 +49,7 @@ func TestPostRepository_Integration(t *testing.T) {
 		assert.NotZero(t, created.CreatedAt)
 
 		// Get by ID
-		retrieved, err := postRepo.GetByID(ctx, created.ID)
+		retrieved, err := postRepo.GetByID(ctx, created.ID, 0)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, created.ID, retrieved.ID)
@@ -71,7 +71,7 @@ func TestPostRepository_Integration(t *testing.T) {
 		require.NoError(t, err)
 
 		// Get by slug
-		retrieved, err := postRepo.GetBySlug(ctx, "unique-slug")
+		retrieved, err := postRepo.GetBySlug(ctx, "unique-slug", 0)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, created.ID, retrieved.ID)
@@ -123,7 +123,7 @@ func TestPostRepository_Integration(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify deletion
-		deleted, err := postRepo.GetByID(ctx, created.ID)
+		deleted, err := postRepo.GetByID(ctx, created.ID, 0)
 		require.NoError(t, err)
 		assert.Nil(t, deleted)
 	})
@@ -181,13 +181,13 @@ func TestPostRepository_Integration(t *testing.T) {
 	})
 
 	t.Run("GetByID returns nil for non-existent post", func(t *testing.T) {
-		post, err := postRepo.GetByID(ctx, 99999)
+		post, err := postRepo.GetByID(ctx, 99999, 0)
 		require.NoError(t, err)
 		assert.Nil(t, post)
 	})
 
 	t.Run("GetBySlug returns nil for non-existent slug", func(t *testing.T) {
-		post, err := postRepo.GetBySlug(ctx, "non-existent-slug")
+		post, err := postRepo.GetBySlug(ctx, "non-existent-slug", 0)
 		require.NoError(t, err)
 		assert.Nil(t, post)
 	})

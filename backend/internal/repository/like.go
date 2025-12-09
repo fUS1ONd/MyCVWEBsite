@@ -45,6 +45,9 @@ func (r *likeRepository) TogglePostLike(ctx context.Context, userID, postID int)
 		if err != nil {
 			return false, fmt.Errorf("failed to unlike post: %w", err)
 		}
+
+		// Decrement likes count
+		_, _ = r.db.Exec(ctx, "UPDATE posts SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = $1", postID)
 		return false, nil
 	}
 
@@ -54,6 +57,9 @@ func (r *likeRepository) TogglePostLike(ctx context.Context, userID, postID int)
 	if err != nil {
 		return false, fmt.Errorf("failed to like post: %w", err)
 	}
+
+	// Increment likes count
+	_, _ = r.db.Exec(ctx, "UPDATE posts SET likes_count = likes_count + 1 WHERE id = $1", postID)
 	return true, nil
 }
 
@@ -94,6 +100,9 @@ func (r *likeRepository) ToggleCommentLike(ctx context.Context, userID, commentI
 		if err != nil {
 			return false, fmt.Errorf("failed to unlike comment: %w", err)
 		}
+
+		// Decrement likes count
+		_, _ = r.db.Exec(ctx, "UPDATE comments SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = $1", commentID)
 		return false, nil
 	}
 
@@ -103,6 +112,9 @@ func (r *likeRepository) ToggleCommentLike(ctx context.Context, userID, commentI
 	if err != nil {
 		return false, fmt.Errorf("failed to like comment: %w", err)
 	}
+
+	// Increment likes count
+	_, _ = r.db.Exec(ctx, "UPDATE comments SET likes_count = likes_count + 1 WHERE id = $1", commentID)
 	return true, nil
 }
 

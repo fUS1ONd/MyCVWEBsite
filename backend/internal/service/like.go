@@ -38,7 +38,7 @@ func NewLikeService(repo repository.LikeRepository, postRepo repository.PostRepo
 // TogglePostLike toggles a like for a post. Returns true if liked, false if unliked.
 func (s *likeService) TogglePostLike(ctx context.Context, userID, postID int) (bool, error) {
 	// Verify post exists
-	_, err := s.postRepo.GetByID(ctx, postID)
+	_, err := s.postRepo.GetByID(ctx, postID, 0)
 	if err != nil {
 		return false, fmt.Errorf("failed to get post: %w", err)
 	}

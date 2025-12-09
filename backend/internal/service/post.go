@@ -15,8 +15,8 @@ type PostService interface {
 	CreatePost(ctx context.Context, req *domain.CreatePostRequest, authorID int) (*domain.Post, error)
 	UpdatePost(ctx context.Context, postID int, req *domain.UpdatePostRequest, userID int, isAdmin bool) (*domain.Post, error)
 	DeletePost(ctx context.Context, postID int, userID int, isAdmin bool) error
-	GetPostByID(ctx context.Context, id int) (*domain.Post, error)
-	GetPostBySlug(ctx context.Context, slug string) (*domain.Post, error)
+	GetPostByID(ctx context.Context, id, userID int) (*domain.Post, error)
+	GetPostBySlug(ctx context.Context, slug string, userID int) (*domain.Post, error)
 	ListPosts(ctx context.Context, req *domain.ListPostsRequest) (*domain.PostsListResponse, error)
 }
 
@@ -44,7 +44,7 @@ func (s *postService) CreatePost(ctx context.Context, req *domain.CreatePostRequ
 	}
 
 	// Check if slug already exists
-	existingPost, err := s.postRepo.GetBySlug(ctx, slug)
+	existingPost, err := s.postRepo.GetBySlug(ctx, slug, 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check slug uniqueness: %w", err)
 	}
@@ -77,7 +77,7 @@ func (s *postService) UpdatePost(ctx context.Context, postID int, req *domain.Up
 	}
 
 	// Get existing post
-	post, err := s.postRepo.GetByID(ctx, postID)
+	post, err := s.postRepo.GetByID(ctx, postID, 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get post: %w", err)
 	}
@@ -98,7 +98,7 @@ func (s *postService) UpdatePost(ctx context.Context, postID int, req *domain.Up
 
 	// Check if new slug conflicts with other posts (excluding current post)
 	if newSlug != post.Slug {
-		existingPost, err := s.postRepo.GetBySlug(ctx, newSlug)
+		existingPost, err := s.postRepo.GetBySlug(ctx, newSlug, 0)
 		if err != nil {
 			return nil, fmt.Errorf("failed to check slug uniqueness: %w", err)
 		}
@@ -124,7 +124,7 @@ func (s *postService) UpdatePost(ctx context.Context, postID int, req *domain.Up
 
 func (s *postService) DeletePost(ctx context.Context, postID int, userID int, isAdmin bool) error {
 	// Get existing post
-	post, err := s.postRepo.GetByID(ctx, postID)
+	post, err := s.postRepo.GetByID(ctx, postID, 0)
 	if err != nil {
 		return fmt.Errorf("failed to get post: %w", err)
 	}
@@ -144,8 +144,8 @@ func (s *postService) DeletePost(ctx context.Context, postID int, userID int, is
 	return nil
 }
 
-func (s *postService) GetPostByID(ctx context.Context, id int) (*domain.Post, error) {
-	post, err := s.postRepo.GetByID(ctx, id)
+func (s *postService) GetPostByID(ctx context.Context, id, userID int) (*domain.Post, error) {
+	post, err := s.postRepo.GetByID(ctx, id, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get post: %w", err)
 	}
@@ -155,8 +155,8 @@ func (s *postService) GetPostByID(ctx context.Context, id int) (*domain.Post, er
 	return post, nil
 }
 
-func (s *postService) GetPostBySlug(ctx context.Context, slug string) (*domain.Post, error) {
-	post, err := s.postRepo.GetBySlug(ctx, slug)
+func (s *postService) GetPostBySlug(ctx context.Context, slug string, userID int) (*domain.Post, error) {
+	post, err := s.postRepo.GetBySlug(ctx, slug, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get post: %w", err)
 	}

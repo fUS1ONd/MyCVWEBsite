@@ -61,7 +61,7 @@ func TestLikeService_TogglePostLike(t *testing.T) {
 			CreatedAt: time.Now(),
 		}
 
-		mockPostRepo.On("GetByID", ctx, 1).Return(post, nil).Once()
+		mockPostRepo.On("GetByID", ctx, 1, 0).Return(post, nil).Once()
 		mockLikeRepo.On("TogglePostLike", ctx, 1, 1).Return(true, nil).Once()
 
 		liked, err := service.TogglePostLike(ctx, 1, 1)
@@ -80,7 +80,7 @@ func TestLikeService_TogglePostLike(t *testing.T) {
 			CreatedAt: time.Now(),
 		}
 
-		mockPostRepo.On("GetByID", ctx, 1).Return(post, nil).Once()
+		mockPostRepo.On("GetByID", ctx, 1, 0).Return(post, nil).Once()
 		mockLikeRepo.On("TogglePostLike", ctx, 1, 1).Return(false, nil).Once()
 
 		liked, err := service.TogglePostLike(ctx, 1, 1)
@@ -93,7 +93,7 @@ func TestLikeService_TogglePostLike(t *testing.T) {
 	})
 
 	t.Run("post not found", func(t *testing.T) {
-		mockPostRepo.On("GetByID", ctx, 999).Return(nil, assert.AnError).Once()
+		mockPostRepo.On("GetByID", ctx, 999, 0).Return(nil, assert.AnError).Once()
 
 		liked, err := service.TogglePostLike(ctx, 1, 999)
 
@@ -110,7 +110,7 @@ func TestLikeService_TogglePostLike(t *testing.T) {
 			CreatedAt: time.Now(),
 		}
 
-		mockPostRepo.On("GetByID", ctx, 1).Return(post, nil).Once()
+		mockPostRepo.On("GetByID", ctx, 1, 0).Return(post, nil).Once()
 		mockLikeRepo.On("TogglePostLike", ctx, 1, 1).Return(false, assert.AnError).Once()
 
 		liked, err := service.TogglePostLike(ctx, 1, 1)

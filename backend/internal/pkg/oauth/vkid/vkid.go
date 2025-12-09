@@ -288,6 +288,7 @@ func userFromReader(reader io.Reader, user *goth.User) error {
 			FirstName string `json:"first_name"`
 			LastName  string `json:"last_name"`
 			Avatar    string `json:"avatar"`
+			Picture   string `json:"picture"`
 			Email     string `json:"email"`
 			Phone     string `json:"phone"`
 			Sex       int    `json:"sex,omitempty"`
@@ -310,6 +311,10 @@ func userFromReader(reader io.Reader, user *goth.User) error {
 	user.LastName = u.LastName
 	user.Name = strings.TrimSpace(u.FirstName + " " + u.LastName)
 	user.AvatarURL = u.Avatar
+
+	if user.AvatarURL == "" && u.Picture != "" {
+		user.AvatarURL = u.Picture
+	}
 
 	// Email might be in session or user_info response
 	if u.Email != "" {

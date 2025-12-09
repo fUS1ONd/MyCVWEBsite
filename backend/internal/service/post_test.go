@@ -38,16 +38,16 @@ func (m *MockPostRepository) Delete(ctx context.Context, id int) error {
 	return args.Error(0)
 }
 
-func (m *MockPostRepository) GetByID(ctx context.Context, id int) (*domain.Post, error) {
-	args := m.Called(ctx, id)
+func (m *MockPostRepository) GetByID(ctx context.Context, id, userID int) (*domain.Post, error) {
+	args := m.Called(ctx, id, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:errcheck // mock method
 	}
 	return args.Get(0).(*domain.Post), args.Error(1) //nolint:errcheck // mock method
 }
 
-func (m *MockPostRepository) GetBySlug(ctx context.Context, slug string) (*domain.Post, error) {
-	args := m.Called(ctx, slug)
+func (m *MockPostRepository) GetBySlug(ctx context.Context, slug string, userID int) (*domain.Post, error) {
+	args := m.Called(ctx, slug, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:errcheck // mock method
 	}
@@ -79,7 +79,7 @@ func TestPostService_CreatePost(t *testing.T) {
 			authorID: 1,
 			setupMock: func(m *MockPostRepository) {
 				// Check slug doesn't exist
-				m.On("GetBySlug", mock.Anything, "introduction-to-go").Return(nil, nil)
+				m.On("GetBySlug", mock.Anything, "introduction-to-go", 0).Return(nil, nil)
 				// Create post
 				m.On("Create", mock.Anything, mock.MatchedBy(func(p *domain.Post) bool {
 					return p.Title == "Introduction to Go" && p.Slug == "introduction-to-go"
@@ -117,7 +117,7 @@ func TestPostService_CreatePost(t *testing.T) {
 			},
 			authorID: 1,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "existing-post").Return(&domain.Post{
+				m.On("GetBySlug", mock.Anything, "existing-post", 0).Return(&domain.Post{
 					ID:   999,
 					Slug: "existing-post",
 				}, nil)
@@ -134,7 +134,7 @@ func TestPostService_CreatePost(t *testing.T) {
 			},
 			authorID: 1,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "new-post").Return(nil, nil)
+				m.On("GetBySlug", mock.Anything, "new-post", 0).Return(nil, nil)
 				m.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("database error"))
 			},
 			wantErr:     true,
@@ -191,13 +191,13 @@ func TestPostService_UpdatePost(t *testing.T) {
 			userID:  1,
 			isAdmin: false,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID:       1,
 					Title:    "Old Title",
 					Slug:     "old-title",
 					AuthorID: 1,
 				}, nil)
-				m.On("GetBySlug", mock.Anything, "updated-title").Return(nil, nil)
+				m.On("GetBySlug", mock.Anything, "updated-title", 0).Return(nil, nil)
 				m.On("Update", mock.Anything, mock.Anything).Return(&domain.Post{
 					ID:        1,
 					Title:     "Updated Title",
@@ -221,12 +221,12 @@ func TestPostService_UpdatePost(t *testing.T) {
 			userID:  999,
 			isAdmin: true,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID:       1,
 					Slug:     "old-slug",
 					AuthorID: 1,
 				}, nil)
-				m.On("GetBySlug", mock.Anything, "admin-update").Return(nil, nil)
+				m.On("GetBySlug", mock.Anything, "admin-update", 0).Return(nil, nil)
 				m.On("Update", mock.Anything, mock.Anything).Return(&domain.Post{
 					ID:    1,
 					Title: "Admin Update",
@@ -246,7 +246,7 @@ func TestPostService_UpdatePost(t *testing.T) {
 			userID:  999,
 			isAdmin: false,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID:       1,
 					AuthorID: 1,
 				}, nil)
@@ -265,7 +265,7 @@ func TestPostService_UpdatePost(t *testing.T) {
 			userID:  1,
 			isAdmin: false,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 999).Return(nil, nil)
+				m.On("GetByID", mock.Anything, 999, 0).Return(nil, nil)
 			},
 			wantErr:     true,
 			errContains: "post not found",
@@ -312,7 +312,7 @@ func TestPostService_DeletePost(t *testing.T) {
 			userID:  1,
 			isAdmin: false,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID:       1,
 					AuthorID: 1,
 				}, nil)
@@ -326,7 +326,7 @@ func TestPostService_DeletePost(t *testing.T) {
 			userID:  999,
 			isAdmin: true,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID:       1,
 					AuthorID: 1,
 				}, nil)
@@ -340,7 +340,7 @@ func TestPostService_DeletePost(t *testing.T) {
 			userID:  999,
 			isAdmin: false,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID:       1,
 					AuthorID: 1,
 				}, nil)
@@ -354,7 +354,7 @@ func TestPostService_DeletePost(t *testing.T) {
 			userID:  1,
 			isAdmin: false,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 999).Return(nil, nil)
+				m.On("GetByID", mock.Anything, 999, 0).Return(nil, nil)
 			},
 			wantErr:     true,
 			errContains: "post not found",
@@ -495,7 +495,7 @@ func TestPostService_GetPostByID(t *testing.T) { //nolint:dupl // similar test p
 			name:   "success - post found",
 			postID: 1,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(&domain.Post{
+				m.On("GetByID", mock.Anything, 1, 0).Return(&domain.Post{
 					ID:    1,
 					Title: "Test Post",
 					Slug:  "test-post",
@@ -507,7 +507,7 @@ func TestPostService_GetPostByID(t *testing.T) { //nolint:dupl // similar test p
 			name:   "error - post not found",
 			postID: 999,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 999).Return(nil, nil)
+				m.On("GetByID", mock.Anything, 999, 0).Return(nil, nil)
 			},
 			wantErr:     true,
 			errContains: "post not found",
@@ -516,7 +516,7 @@ func TestPostService_GetPostByID(t *testing.T) { //nolint:dupl // similar test p
 			name:   "error - repository error",
 			postID: 1,
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetByID", mock.Anything, 1).Return(nil, errors.New("database connection failed"))
+				m.On("GetByID", mock.Anything, 1, 0).Return(nil, errors.New("database connection failed"))
 			},
 			wantErr:     true,
 			errContains: "failed to get post",
@@ -529,7 +529,7 @@ func TestPostService_GetPostByID(t *testing.T) { //nolint:dupl // similar test p
 			tt.setupMock(mockRepo)
 
 			service := NewPostService(mockRepo)
-			post, err := service.GetPostByID(context.Background(), tt.postID)
+			post, err := service.GetPostByID(context.Background(), tt.postID, 0)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -560,7 +560,7 @@ func TestPostService_GetPostBySlug(t *testing.T) { //nolint:dupl // similar test
 			name: "success - post found by slug",
 			slug: "my-awesome-post",
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "my-awesome-post").Return(&domain.Post{
+				m.On("GetBySlug", mock.Anything, "my-awesome-post", 0).Return(&domain.Post{
 					ID:    5,
 					Title: "My Awesome Post",
 					Slug:  "my-awesome-post",
@@ -572,7 +572,7 @@ func TestPostService_GetPostBySlug(t *testing.T) { //nolint:dupl // similar test
 			name: "error - post not found",
 			slug: "non-existent-slug",
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "non-existent-slug").Return(nil, nil)
+				m.On("GetBySlug", mock.Anything, "non-existent-slug", 0).Return(nil, nil)
 			},
 			wantErr:     true,
 			errContains: "post not found",
@@ -581,7 +581,7 @@ func TestPostService_GetPostBySlug(t *testing.T) { //nolint:dupl // similar test
 			name: "error - repository error",
 			slug: "test-slug",
 			setupMock: func(m *MockPostRepository) {
-				m.On("GetBySlug", mock.Anything, "test-slug").Return(nil, errors.New("db connection lost"))
+				m.On("GetBySlug", mock.Anything, "test-slug", 0).Return(nil, errors.New("db connection lost"))
 			},
 			wantErr:     true,
 			errContains: "failed to get post",
@@ -594,7 +594,7 @@ func TestPostService_GetPostBySlug(t *testing.T) { //nolint:dupl // similar test
 			tt.setupMock(mockRepo)
 
 			service := NewPostService(mockRepo)
-			post, err := service.GetPostBySlug(context.Background(), tt.slug)
+			post, err := service.GetPostBySlug(context.Background(), tt.slug, 0)
 
 			if tt.wantErr {
 				assert.Error(t, err)

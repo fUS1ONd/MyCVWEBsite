@@ -15,7 +15,7 @@ type Comment struct {
 	LikesCount int        `json:"likes_count" db:"likes_count"`
 	IsLiked    bool       `json:"is_liked" db:"-"`
 	User       *User      `json:"user,omitempty"`
-	Replies    []Comment  `json:"replies,omitempty"`
+	Replies    []*Comment `json:"replies,omitempty"`
 }
 
 // CreateCommentRequest represents the request to create a comment
