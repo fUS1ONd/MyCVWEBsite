@@ -166,13 +166,18 @@ func (r *postRepo) GetByID(ctx context.Context, id, userID int) (*domain.Post, e
 		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
 		       p.cover_image, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
 		       EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $2) as is_liked,
-		       u.email
+		       u.email, u.name, u.avatar_url, u.role,
+		       (SELECT photo_url FROM profile_info LIMIT 1) as profile_photo
 		FROM posts p
 		LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.id = $1
 	`
 
 	var authorEmail string
+	var authorName string
+	var authorAvatar string
+	var authorRole string
+	var profilePhoto *string
 	var publishedAt *time.Time
 
 	err := db.QueryRow(ctx, query, id, userID).Scan(
@@ -192,6 +197,10 @@ func (r *postRepo) GetByID(ctx context.Context, id, userID int) (*domain.Post, e
 		&post.UpdatedAt,
 		&post.IsLiked,
 		&authorEmail,
+		&authorName,
+		&authorAvatar,
+		&authorRole,
+		&profilePhoto,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -206,9 +215,17 @@ func (r *postRepo) GetByID(ctx context.Context, id, userID int) (*domain.Post, e
 
 	// Set author if exists
 	if authorEmail != "" {
+		avatar := authorAvatar
+		if authorRole == string(domain.RoleAdmin) && profilePhoto != nil && *profilePhoto != "" {
+			avatar = *profilePhoto
+		}
+
 		post.Author = &domain.User{
-			ID:    post.AuthorID,
-			Email: authorEmail,
+			ID:        post.AuthorID,
+			Email:     authorEmail,
+			Name:      authorName,
+			AvatarURL: avatar,
+			Role:      domain.Role(authorRole),
 		}
 	}
 
@@ -223,13 +240,18 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string, userID int) (*dom
 		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
 		       p.cover_image, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
 		       EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $2) as is_liked,
-		       u.email
+		       u.email, u.name, u.avatar_url, u.role,
+		       (SELECT photo_url FROM profile_info LIMIT 1) as profile_photo
 		FROM posts p
 		LEFT JOIN users u ON p.author_id = u.id
 		WHERE p.slug = $1
 	`
 
 	var authorEmail string
+	var authorName string
+	var authorAvatar string
+	var authorRole string
+	var profilePhoto *string
 	var publishedAt *time.Time
 
 	err := db.QueryRow(ctx, query, slug, userID).Scan(
@@ -249,6 +271,10 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string, userID int) (*dom
 		&post.UpdatedAt,
 		&post.IsLiked,
 		&authorEmail,
+		&authorName,
+		&authorAvatar,
+		&authorRole,
+		&profilePhoto,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -263,9 +289,17 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string, userID int) (*dom
 
 	// Set author if exists
 	if authorEmail != "" {
+		avatar := authorAvatar
+		if authorRole == string(domain.RoleAdmin) && profilePhoto != nil && *profilePhoto != "" {
+			avatar = *profilePhoto
+		}
+
 		post.Author = &domain.User{
-			ID:    post.AuthorID,
-			Email: authorEmail,
+			ID:        post.AuthorID,
+			Email:     authorEmail,
+			Name:      authorName,
+			AvatarURL: avatar,
+			Role:      domain.Role(authorRole),
 		}
 	}
 
@@ -294,7 +328,8 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
 		       p.cover_image, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
 		       EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $1) as is_liked,
-		       u.email
+		       u.email, u.name, u.avatar_url, u.role,
+		       (SELECT photo_url FROM profile_info LIMIT 1) as profile_photo
 		FROM posts p
 		LEFT JOIN users u ON p.author_id = u.id
 	`
@@ -345,6 +380,10 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 	for rows.Next() {
 		var post domain.Post
 		var authorEmail string
+		var authorName string
+		var authorAvatar string
+		var authorRole string
+		var profilePhoto *string
 		var publishedAt *time.Time
 
 		err := rows.Scan(
@@ -364,6 +403,10 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 			&post.UpdatedAt,
 			&post.IsLiked,
 			&authorEmail,
+			&authorName,
+			&authorAvatar,
+			&authorRole,
+			&profilePhoto,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan post: %w", err)
@@ -375,9 +418,17 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 
 		// Set author if exists
 		if authorEmail != "" {
+			avatar := authorAvatar
+			if authorRole == string(domain.RoleAdmin) && profilePhoto != nil && *profilePhoto != "" {
+				avatar = *profilePhoto
+			}
+
 			post.Author = &domain.User{
-				ID:    post.AuthorID,
-				Email: authorEmail,
+				ID:        post.AuthorID,
+				Email:     authorEmail,
+				Name:      authorName,
+				AvatarURL: avatar,
+				Role:      domain.Role(authorRole),
 			}
 		}
 

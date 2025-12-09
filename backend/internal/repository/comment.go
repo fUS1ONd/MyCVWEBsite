@@ -175,7 +175,8 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.likes_count, c.created_at, c.updated_at, c.deleted_at,
-		       u.email, u.name, u.avatar_url, u.role
+		       u.email, u.name, u.avatar_url, u.role,
+		       (SELECT photo_url FROM profile_info LIMIT 1) as profile_photo
 		FROM comments c
 		LEFT JOIN users u ON c.user_id = u.id
 		WHERE c.id = $1
@@ -184,7 +185,9 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 	var userEmail string
 	var userName string
 	var userAvatar string
-	var userRole domain.Role
+	var userRole string
+	var profilePhoto *string
+
 	err := db.QueryRow(ctx, query, id).Scan(
 		&comment.ID,
 		&comment.PostID,
@@ -199,6 +202,7 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 		&userName,
 		&userAvatar,
 		&userRole,
+		&profilePhoto,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -209,12 +213,17 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 
 	// Set user if exists
 	if userEmail != "" {
+		avatar := userAvatar
+		if userRole == string(domain.RoleAdmin) && profilePhoto != nil && *profilePhoto != "" {
+			avatar = *profilePhoto
+		}
+
 		comment.User = &domain.User{
 			ID:        comment.UserID,
 			Email:     userEmail,
 			Name:      userName,
-			AvatarURL: userAvatar,
-			Role:      userRole,
+			AvatarURL: avatar,
+			Role:      domain.Role(userRole),
 		}
 	}
 
@@ -226,7 +235,8 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]do
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.likes_count, c.created_at, c.updated_at, c.deleted_at,
 		       u.email, u.name, u.avatar_url, u.role,
-		       EXISTS(SELECT 1 FROM comment_likes cl WHERE cl.comment_id = c.id AND cl.user_id = $2) as is_liked
+		       EXISTS(SELECT 1 FROM comment_likes cl WHERE cl.comment_id = c.id AND cl.user_id = $2) as is_liked,
+		       (SELECT photo_url FROM profile_info LIMIT 1) as profile_photo
 		FROM comments c
 		LEFT JOIN users u ON c.user_id = u.id
 		WHERE c.post_id = $1
@@ -248,7 +258,8 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]do
 		var userEmail string
 		var userName string
 		var userAvatar string
-		var userRole domain.Role
+		var userRole string
+		var profilePhoto *string
 
 		err := rows.Scan(
 			&comment.ID,
@@ -265,6 +276,7 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]do
 			&userAvatar,
 			&userRole,
 			&comment.IsLiked,
+			&profilePhoto,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan comment: %w", err)
@@ -272,12 +284,17 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID, userID int) ([]do
 
 		// Set user if exists
 		if userEmail != "" {
+			avatar := userAvatar
+			if userRole == string(domain.RoleAdmin) && profilePhoto != nil && *profilePhoto != "" {
+				avatar = *profilePhoto
+			}
+
 			comment.User = &domain.User{
 				ID:        comment.UserID,
 				Email:     userEmail,
 				Name:      userName,
-				AvatarURL: userAvatar,
-				Role:      userRole,
+				AvatarURL: avatar,
+				Role:      domain.Role(userRole),
 			}
 		}
 
