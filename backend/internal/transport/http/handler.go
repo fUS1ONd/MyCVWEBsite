@@ -76,6 +76,15 @@ func (h *Handler) InitRoutes() http.Handler {
 			r.Post("/posts/{slug}/comments", h.createComment)
 			r.Put("/comments/{id}", h.updateComment)
 			r.Delete("/comments/{id}", h.deleteComment)
+
+			// Likes endpoints
+			r.Post("/posts/{id}/like", h.togglePostLike)
+			r.Get("/posts/{id}/likes", h.getPostLikesCount)
+			r.Post("/comments/{id}/like", h.toggleCommentLike)
+			r.Get("/comments/{id}/likes", h.getCommentLikesCount)
+
+			// Media endpoints (view)
+			r.Get("/media/{id}", h.getMedia)
 		})
 
 		// Admin endpoints
@@ -86,6 +95,11 @@ func (h *Handler) InitRoutes() http.Handler {
 			r.Post("/admin/posts", h.createPost)
 			r.Put("/admin/posts/{id}", h.updatePost)
 			r.Delete("/admin/posts/{id}", h.deletePost)
+
+			// Media management (admin only for upload/delete, viewing is for authenticated users)
+			r.Post("/admin/media", h.uploadMedia)
+			r.Get("/admin/media", h.listMedia)
+			r.Delete("/admin/media/{id}", h.deleteMedia)
 		})
 	})
 
