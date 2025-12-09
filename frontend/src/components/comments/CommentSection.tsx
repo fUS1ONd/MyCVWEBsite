@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Comment } from '@/lib/types';
 import { CommentThread } from './CommentThread';
 import { CommentForm } from './CommentForm';
+import { CommentSort, SortOption } from './CommentSort';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,9 +18,31 @@ interface CommentSectionProps {
 export function CommentSection({ postSlug, comments, isLoading }: CommentSectionProps) {
   const { isAuthenticated } = useAuth();
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>(() => {
+    const saved = localStorage.getItem('commentSort');
+    return (saved as SortOption) || 'newest';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('commentSort', sortOption);
+  }, [sortOption]);
 
   // Organize comments into threads
   const topLevelComments = comments.filter((c) => !c.parent_id);
+
+  // Sort comments
+  const sortedComments = [...topLevelComments].sort((a, b) => {
+    switch (sortOption) {
+      case 'newest':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'oldest':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'most_liked':
+        return (b.likes_count || 0) - (a.likes_count || 0);
+      default:
+        return 0;
+    }
+  });
 
   if (isLoading) {
     return (
@@ -39,10 +62,15 @@ export function CommentSection({ postSlug, comments, isLoading }: CommentSection
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
-          Comments ({comments.length})
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Comments ({comments.length})
+          </CardTitle>
+          {topLevelComments.length > 0 && (
+            <CommentSort value={sortOption} onChange={setSortOption} />
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {!isAuthenticated && (
@@ -56,12 +84,12 @@ export function CommentSection({ postSlug, comments, isLoading }: CommentSection
         )}
 
         <div className="space-y-6">
-          {topLevelComments.length === 0 ? (
+          {sortedComments.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
               No comments yet. Be the first to comment!
             </p>
           ) : (
-            topLevelComments.map((comment) => (
+            sortedComments.map((comment) => (
               <CommentThread
                 key={comment.id}
                 comment={comment}
