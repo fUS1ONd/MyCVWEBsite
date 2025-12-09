@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"mime/multipart"
 	"testing"
 
 	"personal-web-platform/config"
@@ -20,6 +21,8 @@ type MockServices struct {
 	Comment *MockCommentService
 	Profile *MockProfileService
 	Auth    *MockAuthService
+	Media   *MockMediaService
+	Like    *MockLikeService
 }
 
 // setupHandler creates a handler with mocked services
@@ -29,6 +32,8 @@ func setupHandler(_ *testing.T) (*Handler, *MockServices) { //nolint:revive // t
 		Comment: new(MockCommentService),
 		Profile: new(MockProfileService),
 		Auth:    new(MockAuthService),
+		Media:   new(MockMediaService),
+		Like:    new(MockLikeService),
 	}
 
 	services := &service.Services{
@@ -36,6 +41,8 @@ func setupHandler(_ *testing.T) (*Handler, *MockServices) { //nolint:revive // t
 		Comment: mocks.Comment,
 		Profile: mocks.Profile,
 		Auth:    mocks.Auth,
+		Media:   mocks.Media,
+		Like:    mocks.Like,
 	}
 
 	cfg := &config.Config{
@@ -189,4 +196,71 @@ func (m *MockAuthService) GetUserByID(ctx context.Context, userID int) (*domain.
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.User), args.Error(1)
+}
+
+type MockMediaService struct {
+	mock.Mock
+}
+
+func (m *MockMediaService) Upload(ctx context.Context, file multipart.File, header *multipart.FileHeader, uploaderID int) (*domain.MediaFile, error) {
+	args := m.Called(ctx, file, header, uploaderID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.MediaFile), args.Error(1)
+}
+
+func (m *MockMediaService) GetByID(ctx context.Context, id int) (*domain.MediaFile, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.MediaFile), args.Error(1)
+}
+
+func (m *MockMediaService) Delete(ctx context.Context, id int, uploaderID int) error {
+	args := m.Called(ctx, id, uploaderID)
+	return args.Error(0)
+}
+
+func (m *MockMediaService) ListByUploader(ctx context.Context, uploaderID int) ([]domain.MediaFile, error) {
+	args := m.Called(ctx, uploaderID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domain.MediaFile), args.Error(1)
+}
+
+type MockLikeService struct {
+	mock.Mock
+}
+
+func (m *MockLikeService) TogglePostLike(ctx context.Context, userID, postID int) (bool, error) {
+	args := m.Called(ctx, userID, postID)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockLikeService) GetPostLikesCount(ctx context.Context, postID int) (int, error) {
+	args := m.Called(ctx, postID)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockLikeService) IsPostLikedByUser(ctx context.Context, userID, postID int) (bool, error) {
+	args := m.Called(ctx, userID, postID)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockLikeService) ToggleCommentLike(ctx context.Context, userID, commentID int) (bool, error) {
+	args := m.Called(ctx, userID, commentID)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockLikeService) GetCommentLikesCount(ctx context.Context, commentID int) (int, error) {
+	args := m.Called(ctx, commentID)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockLikeService) IsCommentLikedByUser(ctx context.Context, userID, commentID int) (bool, error) {
+	args := m.Called(ctx, userID, commentID)
+	return args.Bool(0), args.Error(1)
 }
