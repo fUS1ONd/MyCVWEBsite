@@ -16,7 +16,7 @@ export interface Profile {
   contacts: {
     email: string;
     github: string;
-    linkedin: string;
+    telegram: string;
   };
 }
 

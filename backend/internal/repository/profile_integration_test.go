@@ -36,7 +36,7 @@ func TestProfileRepository_Integration(t *testing.T) {
 			Contacts: domain.Contacts{
 				Email:    "john.doe@example.com",
 				GitHub:   "https://github.com/johndoe",
-				LinkedIn: "https://linkedin.com/in/johndoe",
+				Telegram: "https://t.me/johndoe",
 				VK:       "https://vk.com/johndoe",
 			},
 		}

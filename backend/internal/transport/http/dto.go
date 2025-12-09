@@ -16,7 +16,7 @@ type ProfileResponse struct {
 type ContactsResponse struct {
 	Email    string `json:"email"`
 	GitHub   string `json:"github"`
-	LinkedIn string `json:"linkedin"`
+	Telegram string `json:"telegram"`
 }
 
 // PostResponse represents post data response
@@ -85,7 +85,7 @@ type UpdateProfileRequest struct {
 	Activity    *string `json:"activity,omitempty"`
 	Email       *string `json:"email,omitempty"`
 	GitHub      *string `json:"github,omitempty"`
-	LinkedIn    *string `json:"linkedin,omitempty"`
+	Telegram    *string `json:"telegram,omitempty"`
 }
 
 // CreateCommentRequest represents comment creation request
@@ -125,7 +125,7 @@ func ToProfileResponse(p *domain.Profile) ProfileResponse {
 		Contacts: ContactsResponse{
 			Email:    p.Contacts.Email,
 			GitHub:   p.Contacts.GitHub,
-			LinkedIn: p.Contacts.LinkedIn,
+			Telegram: p.Contacts.Telegram,
 		},
 	}
 }

@@ -189,12 +189,12 @@ export default function ProfileEditor() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contacts.linkedin">LinkedIn</Label>
+                  <Label htmlFor="contacts.telegram">Telegram</Label>
                   <Input
-                    id="contacts.linkedin"
-                    {...register('contacts.linkedin')}
+                    id="contacts.telegram"
+                    {...register('contacts.telegram')}
                     type="url"
-                    placeholder="https://linkedin.com/in/username"
+                    placeholder="https://t.me/username"
                   />
                 </div>
               </div>

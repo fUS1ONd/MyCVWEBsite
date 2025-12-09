@@ -7,7 +7,7 @@ import "time"
 type Contacts struct {
 	Email    string `json:"email,omitempty" validate:"omitempty,email"`
 	GitHub   string `json:"github,omitempty" validate:"omitempty,url"`
-	LinkedIn string `json:"linkedin,omitempty" validate:"omitempty,url"`
+	Telegram string `json:"telegram,omitempty" validate:"omitempty,url"`
 	VK       string `json:"vk,omitempty" validate:"omitempty,url"`
 }
 

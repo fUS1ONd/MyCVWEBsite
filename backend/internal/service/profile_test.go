@@ -109,7 +109,7 @@ func TestProfileService_UpdateProfile(t *testing.T) {
 		Contacts: domain.Contacts{
 			Email:    "jane@example.com",
 			GitHub:   "https://github.com/janedoe",
-			LinkedIn: "https://linkedin.com/in/janedoe",
+			Telegram: "https://t.me/janedoe",
 		},
 	}
 
@@ -133,7 +133,7 @@ func TestProfileService_UpdateProfile(t *testing.T) {
 					Contacts: domain.Contacts{
 						Email:    "jane@example.com",
 						GitHub:   "https://github.com/janedoe",
-						LinkedIn: "https://linkedin.com/in/janedoe",
+						Telegram: "https://t.me/janedoe",
 					},
 				}, nil)
 			},

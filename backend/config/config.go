@@ -46,7 +46,7 @@ type ProfileConfig struct {
 type Contacts struct {
 	Email    string `yaml:"email"`
 	Github   string `yaml:"github"`
-	LinkedIn string `yaml:"linkedin"`
+	Telegram string `yaml:"telegram"`
 }
 
 // Auth represents authentication configuration

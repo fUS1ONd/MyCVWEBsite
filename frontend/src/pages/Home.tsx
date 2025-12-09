@@ -5,7 +5,8 @@ import { Profile, ApiResponse } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Github, Linkedin, Mail } from 'lucide-react';
+import { Github, Mail } from 'lucide-react';
+import { FaTelegram } from 'react-icons/fa';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
@@ -74,11 +75,11 @@ export default function Home() {
               </a>
             </Button>
           )}
-          {profile.contacts.linkedin && (
+          {profile.contacts.telegram && (
             <Button variant="outline" size="sm" asChild>
-              <a href={profile.contacts.linkedin} target="_blank" rel="noopener noreferrer">
-                <Linkedin className="h-4 w-4 mr-2" />
-                LinkedIn
+              <a href={profile.contacts.telegram} target="_blank" rel="noopener noreferrer">
+                <FaTelegram className="h-4 w-4 mr-2" />
+                Telegram
               </a>
             </Button>
           )}

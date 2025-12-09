@@ -20,7 +20,7 @@ profile:
   contacts:
     email: "your@email.com"
     github: "https://github.com/yourusername"
-    linkedin: "https://linkedin.com/in/yourusername"
+    telegram: "https://t.me/fUS1ONd"
 
 auth:
   # CRITICAL: Set via SESSION_SECRET environment variable (min 32 random characters)
