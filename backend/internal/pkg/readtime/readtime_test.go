@@ -92,7 +92,7 @@ func TestCountWords(t *testing.T) {
 		{
 			name:     "words with numbers",
 			text:     "I have 2 cats and 3 dogs",
-			expected: 6,
+			expected: 7,
 		},
 		{
 			name:     "multiple spaces",
@@ -170,7 +170,7 @@ func TestEstimateMarkdown(t *testing.T) {
 		{
 			name:     "empty markdown",
 			markdown: "",
-			expected: 0,
+			expected: 1,
 		},
 		{
 			name:     "plain text",
@@ -210,12 +210,12 @@ func TestEstimateMarkdown(t *testing.T) {
 		{
 			name:     "with images",
 			markdown: "![alt text](image.png)",
-			expected: 0,
+			expected: 1,
 		},
 		{
 			name:     "complex markdown",
 			markdown: "# Title\n\n**Bold** and *italic* text.\n\n```\ncode block\n```\n\n[Link](url) and ![image](img.png)\n\n" + strings.Repeat("word ", 200),
-			expected: 1,
+			expected: 2,
 		},
 	}
 

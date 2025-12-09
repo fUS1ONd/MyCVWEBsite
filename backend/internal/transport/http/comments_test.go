@@ -23,7 +23,7 @@ func TestHandler_getCommentsByPostSlug(t *testing.T) {
 		req = injectParam(req, "slug", "test-post")
 
 		comments := []domain.Comment{{ID: 1, Content: "Test"}}
-		mocks.Comment.On("GetCommentsByPostSlug", mock.Anything, "test-post").Return(comments, nil)
+		mocks.Comment.On("GetCommentsByPostSlug", mock.Anything, "test-post", 0).Return(comments, nil)
 
 		w := httptest.NewRecorder()
 		h.getCommentsByPostSlug(w, req)
@@ -55,7 +55,7 @@ func TestHandler_createComment(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		post := &domain.Post{ID: 10, Slug: "test-post"}
-		mocks.Post.On("GetPostBySlug", mock.Anything, "test-post").Return(post, nil)
+		mocks.Post.On("GetPostBySlug", mock.Anything, "test-post", 1).Return(post, nil)
 		mocks.Comment.On("CreateComment", mock.Anything, 10, mock.AnythingOfType("*domain.CreateCommentRequest"), 1).
 			Return(&domain.Comment{ID: 1, Content: "New comment"}, nil)
 

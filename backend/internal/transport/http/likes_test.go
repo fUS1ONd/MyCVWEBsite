@@ -14,9 +14,9 @@ import (
 )
 
 func TestHandler_togglePostLike(t *testing.T) {
-	h, mocks := setupHandler(t)
 
 	t.Run("Like Post Success", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("POST", "/api/v1/posts/1/like", nil)
 		req = injectParam(req, "id", "1")
 
@@ -25,6 +25,7 @@ func TestHandler_togglePostLike(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		mocks.Like.On("TogglePostLike", mock.Anything, 1, 1).Return(true, nil)
+		mocks.Like.On("GetPostLikesCount", mock.Anything, 1).Return(1, nil)
 
 		w := httptest.NewRecorder()
 		h.togglePostLike(w, req)
@@ -33,6 +34,7 @@ func TestHandler_togglePostLike(t *testing.T) {
 	})
 
 	t.Run("Unlike Post Success", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("POST", "/api/v1/posts/1/like", nil)
 		req = injectParam(req, "id", "1")
 
@@ -41,6 +43,7 @@ func TestHandler_togglePostLike(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		mocks.Like.On("TogglePostLike", mock.Anything, 1, 1).Return(false, nil)
+		mocks.Like.On("GetPostLikesCount", mock.Anything, 1).Return(0, nil)
 
 		w := httptest.NewRecorder()
 		h.togglePostLike(w, req)
@@ -49,6 +52,7 @@ func TestHandler_togglePostLike(t *testing.T) {
 	})
 
 	t.Run("No User", func(t *testing.T) {
+		h, _ := setupHandler(t)
 		req := httptest.NewRequest("POST", "/api/v1/posts/1/like", nil)
 		req = injectParam(req, "id", "1")
 
@@ -59,6 +63,7 @@ func TestHandler_togglePostLike(t *testing.T) {
 	})
 
 	t.Run("Invalid Post ID", func(t *testing.T) {
+		h, _ := setupHandler(t)
 		req := httptest.NewRequest("POST", "/api/v1/posts/invalid/like", nil)
 		req = injectParam(req, "id", "invalid")
 
@@ -73,6 +78,7 @@ func TestHandler_togglePostLike(t *testing.T) {
 	})
 
 	t.Run("Service Error", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("POST", "/api/v1/posts/1/like", nil)
 		req = injectParam(req, "id", "1")
 
@@ -90,9 +96,9 @@ func TestHandler_togglePostLike(t *testing.T) {
 }
 
 func TestHandler_toggleCommentLike(t *testing.T) {
-	h, mocks := setupHandler(t)
 
 	t.Run("Like Comment Success", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("POST", "/api/v1/comments/1/like", nil)
 		req = injectParam(req, "id", "1")
 
@@ -101,6 +107,7 @@ func TestHandler_toggleCommentLike(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		mocks.Like.On("ToggleCommentLike", mock.Anything, 1, 1).Return(true, nil)
+		mocks.Like.On("GetCommentLikesCount", mock.Anything, 1).Return(1, nil)
 
 		w := httptest.NewRecorder()
 		h.toggleCommentLike(w, req)
@@ -109,6 +116,7 @@ func TestHandler_toggleCommentLike(t *testing.T) {
 	})
 
 	t.Run("No User", func(t *testing.T) {
+		h, _ := setupHandler(t)
 		req := httptest.NewRequest("POST", "/api/v1/comments/1/like", nil)
 		req = injectParam(req, "id", "1")
 
@@ -119,6 +127,7 @@ func TestHandler_toggleCommentLike(t *testing.T) {
 	})
 
 	t.Run("Invalid Comment ID", func(t *testing.T) {
+		h, _ := setupHandler(t)
 		req := httptest.NewRequest("POST", "/api/v1/comments/invalid/like", nil)
 		req = injectParam(req, "id", "invalid")
 
@@ -134,9 +143,9 @@ func TestHandler_toggleCommentLike(t *testing.T) {
 }
 
 func TestHandler_getPostLikesCount(t *testing.T) { //nolint:dupl // similar test pattern to getCommentLikesCount
-	h, mocks := setupHandler(t)
 
 	t.Run("Success", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("GET", "/api/v1/posts/1/likes", nil)
 		req = injectParam(req, "id", "1")
 
@@ -149,6 +158,7 @@ func TestHandler_getPostLikesCount(t *testing.T) { //nolint:dupl // similar test
 	})
 
 	t.Run("Invalid Post ID", func(t *testing.T) {
+		h, _ := setupHandler(t)
 		req := httptest.NewRequest("GET", "/api/v1/posts/invalid/likes", nil)
 		req = injectParam(req, "id", "invalid")
 
@@ -159,6 +169,7 @@ func TestHandler_getPostLikesCount(t *testing.T) { //nolint:dupl // similar test
 	})
 
 	t.Run("Service Error", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("GET", "/api/v1/posts/1/likes", nil)
 		req = injectParam(req, "id", "1")
 
@@ -172,9 +183,9 @@ func TestHandler_getPostLikesCount(t *testing.T) { //nolint:dupl // similar test
 }
 
 func TestHandler_getCommentLikesCount(t *testing.T) { //nolint:dupl // similar test pattern to getPostLikesCount
-	h, mocks := setupHandler(t)
 
 	t.Run("Success", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("GET", "/api/v1/comments/1/likes", nil)
 		req = injectParam(req, "id", "1")
 
@@ -187,6 +198,7 @@ func TestHandler_getCommentLikesCount(t *testing.T) { //nolint:dupl // similar t
 	})
 
 	t.Run("Invalid Comment ID", func(t *testing.T) {
+		h, _ := setupHandler(t)
 		req := httptest.NewRequest("GET", "/api/v1/comments/invalid/likes", nil)
 		req = injectParam(req, "id", "invalid")
 
@@ -197,6 +209,7 @@ func TestHandler_getCommentLikesCount(t *testing.T) { //nolint:dupl // similar t
 	})
 
 	t.Run("Service Error", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("GET", "/api/v1/comments/1/likes", nil)
 		req = injectParam(req, "id", "1")
 

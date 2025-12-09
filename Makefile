@@ -1,4 +1,4 @@
-.PHONY: init dev down logs lint test clean
+.PHONY: init dev down logs lint test coverage
 
 # 1. Первая настройка: копирует .env (если надо), ставит git-hooks
 init:
@@ -24,3 +24,12 @@ logs:
 # 6. Проверка качества (запуск локальных тулзов)
 check:
 	pre-commit run --all-files
+
+# Запуск всех тестов
+test:
+	cd backend && go test -v -tags=integration ./...
+
+# Генерация отчета о покрытии
+coverage:
+	cd backend && go test -tags=integration -coverprofile=coverage.out ./...
+	cd backend && go tool cover -html=coverage.out -o coverage.html

@@ -31,7 +31,3 @@
 | `make check` | Run linters and formatters                  |
 
 docker compose exec -T db psql -U postgres -d pwp_db -c "UPDATE users SET role = 'admin' WHERE email = 'koskriv2006@gmail.com'"
-
-docker compose run --rm migrator
-
-/home/krivonosov/.claude/plans/splendid-singing-blanket.md

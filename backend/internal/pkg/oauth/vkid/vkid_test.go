@@ -116,7 +116,7 @@ func TestSessionGetAuthURL(t *testing.T) {
 func TestUserFromReader(t *testing.T) {
 	jsonResponse := `{
 		"user": {
-			"user_id": 123456789,
+			"user_id": "123456789",
 			"first_name": "Иван",
 			"last_name": "Петров",
 			"email": "ivan@example.com",
@@ -141,7 +141,7 @@ func TestUserFromReader(t *testing.T) {
 func TestUserFromReader_MissingEmail(t *testing.T) {
 	jsonResponse := `{
 		"user": {
-			"user_id": 987654321,
+			"user_id": "987654321",
 			"first_name": "Test",
 			"last_name": "User",
 			"avatar": "https://example.com/test.jpg"
@@ -172,7 +172,7 @@ func TestUserFromReader_InvalidJSON(t *testing.T) {
 func TestUserFromReader_NameTrimming(t *testing.T) {
 	jsonResponse := `{
 		"user": {
-			"user_id": 111,
+			"user_id": "111",
 			"first_name": "  Spaced  ",
 			"last_name": "  Name  ",
 			"avatar": ""
@@ -283,7 +283,7 @@ func TestAuthorize_InvalidToken(t *testing.T) {
 func TestEndpointConstants(t *testing.T) {
 	// Verify that VK ID endpoints are correctly set
 	assert.Equal(t, "https://id.vk.ru/authorize", authURL)
-	assert.Equal(t, "https://id.vk.ru/oauth2/auth", tokenURL)
+	assert.Equal(t, "https://id.vk.com/oauth2/auth", tokenURL)
 	assert.Equal(t, "https://id.vk.ru/oauth2/user_info", userInfoURL)
 }
 

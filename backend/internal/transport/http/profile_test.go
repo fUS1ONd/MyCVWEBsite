@@ -14,9 +14,9 @@ import (
 )
 
 func TestHandler_getProfile(t *testing.T) {
-	h, mocks := setupHandler(t)
 
 	t.Run("Success", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("GET", "/api/v1/profile", nil)
 
 		profile := &domain.Profile{Name: "Test Name"}
@@ -29,6 +29,7 @@ func TestHandler_getProfile(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		req := httptest.NewRequest("GET", "/api/v1/profile", nil)
 
 		mocks.Profile.On("GetProfile", mock.Anything).Return(nil, errors.New("db error"))
@@ -41,9 +42,9 @@ func TestHandler_getProfile(t *testing.T) {
 }
 
 func TestHandler_updateProfile(t *testing.T) {
-	h, mocks := setupHandler(t)
 
 	t.Run("Success", func(t *testing.T) {
+		h, mocks := setupHandler(t)
 		body := `{"name": "New Name", "description": "Desc", "activity": "Work", "contacts": {"email": "test@test.com"}}`
 		req := httptest.NewRequest("PUT", "/api/v1/admin/profile", bytes.NewBufferString(body))
 
