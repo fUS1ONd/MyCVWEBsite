@@ -41,8 +41,7 @@ export interface Post {
   updated_at: string;
   author_id: number;
   author?: User;
-  cover_image_id?: number;
-  cover_image?: MediaFile;
+  cover_image?: string;
   read_time_minutes: number;
   likes_count: number;
   comments_count: number;

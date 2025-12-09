@@ -20,6 +20,7 @@ import {
   AlignCenter,
   AlignRight,
   ImagePlus,
+  Youtube,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -42,8 +43,10 @@ interface EditorToolbarProps {
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   const [linkUrl, setLinkUrl] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
 
   const addLink = () => {
     if (linkUrl) {
@@ -58,6 +61,14 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       editor.chain().focus().setImage({ src: imageUrl }).run();
       setImageUrl('');
       setIsImageDialogOpen(false);
+    }
+  };
+
+  const addVideo = () => {
+    if (videoUrl) {
+      editor.chain().focus().setYoutubeVideo({ src: videoUrl }).run();
+      setVideoUrl('');
+      setIsVideoDialogOpen(false);
     }
   };
 
@@ -316,6 +327,46 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                 Add Image
               </Button>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video (YouTube) */}
+      <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+        <DialogTrigger asChild>
+          <Button type="button" variant="ghost" size="sm" title="Add Video" className="h-8 w-8 p-0">
+            <Youtube className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add YouTube Video</DialogTitle>
+            <DialogDescription>Enter the YouTube URL</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="video-url">Video URL</Label>
+              <Input
+                id="video-url"
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addVideo();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsVideoDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={addVideo}>
+                Add Video
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

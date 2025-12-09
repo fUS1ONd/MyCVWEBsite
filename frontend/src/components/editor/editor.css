@@ -19,6 +19,17 @@
   margin: 1rem 0;
 }
 
+.ProseMirror div[data-youtube-video] {
+  cursor: move;
+  padding-right: 24px;
+}
+
+.ProseMirror iframe {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+}
+
 .ProseMirror a {
   color: hsl(var(--primary));
   text-decoration: underline;

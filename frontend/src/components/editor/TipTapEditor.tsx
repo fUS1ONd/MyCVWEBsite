@@ -5,6 +5,7 @@ import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
+import Youtube from '@tiptap/extension-youtube';
 import { EditorToolbar } from './EditorToolbar';
 import './editor.css';
 
@@ -36,6 +37,9 @@ export function TipTapEditor({
         HTMLAttributes: {
           class: 'max-w-full h-auto rounded-lg',
         },
+      }),
+      Youtube.configure({
+        controls: false,
       }),
       Placeholder.configure({
         placeholder,

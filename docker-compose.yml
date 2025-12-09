@@ -28,6 +28,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     networks:
       - pwp-network
     volumes:
@@ -41,7 +43,8 @@ services:
           "wget",
           "--no-verbose",
           "--tries=1",
-          "-O", "/dev/null",
+          "-O",
+          "/dev/null",
           "http://localhost:8080/health",
         ]
       interval: 10s
@@ -91,7 +94,14 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/migrations:/migrations
-    command: ["-path", "/migrations", "-database", "postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable", "up"]
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable",
+        "up",
+      ]
     networks:
       - pwp-network
 

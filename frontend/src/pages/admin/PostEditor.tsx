@@ -22,7 +22,7 @@ type PostFormData = {
   content: string;
   preview: string;
   published: boolean;
-  cover_image_id?: number;
+  cover_image?: string;
 };
 
 export default function PostEditor() {
@@ -53,7 +53,7 @@ export default function PostEditor() {
       content: '',
       preview: '',
       published: false,
-      cover_image_id: undefined,
+      cover_image: '',
     },
   });
 
@@ -64,7 +64,7 @@ export default function PostEditor() {
       setValue('content', post.content);
       setValue('preview', post.preview);
       setValue('published', post.published);
-      setValue('cover_image_id', post.cover_image_id);
+      setValue('cover_image', post.cover_image || '');
     }
   }, [post, setValue]);
 
@@ -94,15 +94,14 @@ export default function PostEditor() {
   };
 
   const handleCoverImageUpload = (url: string, mediaFile: MediaFile) => {
-    setValue('cover_image_id', mediaFile.id, { shouldDirty: true });
+    setValue('cover_image', url, { shouldDirty: true });
   };
 
   const removeCoverImage = () => {
-    setValue('cover_image_id', undefined, { shouldDirty: true });
+    setValue('cover_image', '', { shouldDirty: true });
   };
 
-  const coverImageId = watch('cover_image_id');
-  const coverImage = post?.cover_image;
+  const coverImage = watch('cover_image');
 
   if (isLoading && !isNew) {
     return (
@@ -165,27 +164,35 @@ export default function PostEditor() {
             </div>
 
             <div className="space-y-2">
-              <Label>Cover Image</Label>
-              {coverImageId && coverImage ? (
-                <div className="relative">
-                  <img
-                    src={coverImage.url}
-                    alt="Cover"
-                    className="w-full h-48 object-cover rounded-lg"
+              <Label htmlFor="cover_image">Cover Image</Label>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    id="cover_image"
+                    {...register('cover_image')}
+                    placeholder="https://example.com/image.jpg"
                   />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={removeCoverImage}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
                 </div>
-              ) : (
+                {coverImage && (
+                  <div className="relative mt-2">
+                    <img
+                      src={coverImage}
+                      alt="Cover"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={removeCoverImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
                 <ImageUpload onUpload={handleCoverImageUpload} label="Upload Cover Image" />
-              )}
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">

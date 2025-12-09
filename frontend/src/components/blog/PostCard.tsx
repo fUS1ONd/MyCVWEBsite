@@ -79,7 +79,7 @@ export function PostCard({ post }: PostCardProps) {
       {post.cover_image && (
         <Link to={`/blog/${post.slug}`} className="block">
           <img
-            src={post.cover_image.url}
+            src={post.cover_image}
             alt={post.title}
             className="w-full h-48 object-cover"
             loading="lazy"

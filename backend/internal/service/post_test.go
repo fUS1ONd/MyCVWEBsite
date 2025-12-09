@@ -71,10 +71,11 @@ func TestPostService_CreatePost(t *testing.T) {
 		{
 			name: "success - create published post",
 			request: &domain.CreatePostRequest{
-				Title:     "Introduction to Go",
-				Content:   "# Go is awesome\n\nLet me tell you why...",
-				Preview:   "Learn about Go programming language",
-				Published: true,
+				Title:      "Introduction to Go",
+				Content:    "# Go is awesome\n\nLet me tell you why...",
+				Preview:    "Learn about Go programming language",
+				Published:  true,
+				CoverImage: "https://example.com/cover.jpg",
 			},
 			authorID: 1,
 			setupMock: func(m *MockPostRepository) {
@@ -84,14 +85,15 @@ func TestPostService_CreatePost(t *testing.T) {
 				m.On("Create", mock.Anything, mock.MatchedBy(func(p *domain.Post) bool {
 					return p.Title == "Introduction to Go" && p.Slug == "introduction-to-go"
 				})).Return(&domain.Post{
-					ID:        1,
-					Title:     "Introduction to Go",
-					Slug:      "introduction-to-go",
-					Content:   "# Go is awesome\n\nLet me tell you why...",
-					Preview:   "Learn about Go programming language",
-					AuthorID:  1,
-					Published: true,
-					CreatedAt: time.Now(),
+					ID:         1,
+					Title:      "Introduction to Go",
+					Slug:       "introduction-to-go",
+					Content:    "# Go is awesome\n\nLet me tell you why...",
+					Preview:    "Learn about Go programming language",
+					AuthorID:   1,
+					Published:  true,
+					CoverImage: "https://example.com/cover.jpg",
+					CreatedAt:  time.Now(),
 				}, nil)
 			},
 			wantErr: false,
@@ -161,6 +163,9 @@ func TestPostService_CreatePost(t *testing.T) {
 				assert.NotNil(t, post)
 				assert.Equal(t, tt.request.Title, post.Title)
 				assert.Equal(t, "introduction-to-go", post.Slug)
+				if tt.request.CoverImage != "" {
+					assert.Equal(t, tt.request.CoverImage, post.CoverImage)
+				}
 			}
 
 			mockRepo.AssertExpectations(t)
@@ -183,10 +188,11 @@ func TestPostService_UpdatePost(t *testing.T) {
 			name:   "success - author updates own post",
 			postID: 1,
 			request: &domain.UpdatePostRequest{
-				Title:     "Updated Title",
-				Content:   "Updated content",
-				Preview:   "Updated preview",
-				Published: true,
+				Title:      "Updated Title",
+				Content:    "Updated content",
+				Preview:    "Updated preview",
+				Published:  true,
+				CoverImage: "https://example.com/updated.jpg",
 			},
 			userID:  1,
 			isAdmin: false,
@@ -199,12 +205,13 @@ func TestPostService_UpdatePost(t *testing.T) {
 				}, nil)
 				m.On("GetBySlug", mock.Anything, "updated-title", 0).Return(nil, nil)
 				m.On("Update", mock.Anything, mock.Anything).Return(&domain.Post{
-					ID:        1,
-					Title:     "Updated Title",
-					Slug:      "updated-title",
-					Content:   "Updated content",
-					Preview:   "Updated preview",
-					Published: true,
+					ID:         1,
+					Title:      "Updated Title",
+					Slug:       "updated-title",
+					Content:    "Updated content",
+					Preview:    "Updated preview",
+					Published:  true,
+					CoverImage: "https://example.com/updated.jpg",
 				}, nil)
 			},
 			wantErr: false,

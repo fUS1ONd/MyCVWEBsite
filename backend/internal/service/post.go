@@ -54,12 +54,13 @@ func (s *postService) CreatePost(ctx context.Context, req *domain.CreatePostRequ
 
 	// Create post
 	post := &domain.Post{
-		Title:     req.Title,
-		Slug:      slug,
-		Content:   req.Content,
-		Preview:   req.Preview,
-		AuthorID:  authorID,
-		Published: req.Published,
+		Title:      req.Title,
+		Slug:       slug,
+		Content:    req.Content,
+		Preview:    req.Preview,
+		AuthorID:   authorID,
+		Published:  req.Published,
+		CoverImage: req.CoverImage,
 	}
 
 	createdPost, err := s.postRepo.Create(ctx, post)
@@ -113,6 +114,7 @@ func (s *postService) UpdatePost(ctx context.Context, postID int, req *domain.Up
 	post.Content = req.Content
 	post.Preview = req.Preview
 	post.Published = req.Published
+	post.CoverImage = req.CoverImage
 
 	updatedPost, err := s.postRepo.Update(ctx, post)
 	if err != nil {

@@ -32,12 +32,13 @@ func TestPostRepository_Integration(t *testing.T) {
 
 	t.Run("Create and GetByID", func(t *testing.T) {
 		post := &domain.Post{
-			Title:     "Test Post",
-			Slug:      "test-post",
-			Content:   "This is test content with more than 10 characters",
-			Preview:   "Test preview",
-			AuthorID:  author.ID,
-			Published: true,
+			Title:      "Test Post",
+			Slug:       "test-post",
+			Content:    "This is test content with more than 10 characters",
+			Preview:    "Test preview",
+			AuthorID:   author.ID,
+			Published:  true,
+			CoverImage: "https://example.com/image.jpg",
 		}
 
 		created, err := postRepo.Create(ctx, post)
@@ -47,6 +48,7 @@ func TestPostRepository_Integration(t *testing.T) {
 		assert.Equal(t, "Test Post", created.Title)
 		assert.Equal(t, "test-post", created.Slug)
 		assert.NotZero(t, created.CreatedAt)
+		assert.Equal(t, "https://example.com/image.jpg", created.CoverImage)
 
 		// Get by ID
 		retrieved, err := postRepo.GetByID(ctx, created.ID, 0)
@@ -55,6 +57,7 @@ func TestPostRepository_Integration(t *testing.T) {
 		assert.Equal(t, created.ID, retrieved.ID)
 		assert.Equal(t, created.Title, retrieved.Title)
 		assert.Equal(t, created.Slug, retrieved.Slug)
+		assert.Equal(t, created.CoverImage, retrieved.CoverImage)
 	})
 
 	t.Run("GetBySlug", func(t *testing.T) {
