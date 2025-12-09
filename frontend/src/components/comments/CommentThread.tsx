@@ -20,14 +20,7 @@ export function CommentThread({
 }: CommentThreadProps) {
   const replies = comment.replies || [];
 
-  const borderColors = [
-    'border-primary/30',
-    'border-blue-500/30',
-    'border-purple-500/30',
-    'border-green-500/30',
-  ];
-
-  const borderColor = borderColors[depth % borderColors.length];
+  const borderColor = 'border-border';
 
   return (
     <div className="space-y-4">

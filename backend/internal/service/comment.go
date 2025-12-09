@@ -137,8 +137,22 @@ func (s *commentService) DeleteComment(ctx context.Context, commentID int, userI
 		return fmt.Errorf("permission denied: you can only delete your own comments")
 	}
 
-	if err := s.commentRepo.Delete(ctx, commentID); err != nil {
-		return fmt.Errorf("failed to delete comment: %w", err)
+	// Check if comment has replies
+	hasReplies, err := s.commentRepo.HasReplies(ctx, commentID)
+	if err != nil {
+		return fmt.Errorf("failed to check for replies: %w", err)
+	}
+
+	if hasReplies {
+		// If has replies, soft delete and replace content
+		if err := s.commentRepo.SoftDelete(ctx, commentID, "Содержимое удалено."); err != nil {
+			return fmt.Errorf("failed to soft delete comment: %w", err)
+		}
+	} else {
+		// If no replies, hard delete
+		if err := s.commentRepo.HardDelete(ctx, commentID); err != nil {
+			return fmt.Errorf("failed to delete comment: %w", err)
+		}
 	}
 
 	return nil

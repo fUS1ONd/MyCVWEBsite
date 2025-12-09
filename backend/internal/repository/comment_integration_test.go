@@ -119,7 +119,7 @@ func TestCommentRepository_Integration(t *testing.T) {
 		require.NoError(t, err)
 
 		// Delete
-		err = commentRepo.Delete(ctx, created.ID)
+		err = commentRepo.SoftDelete(ctx, created.ID, "deleted")
 		require.NoError(t, err)
 
 		// Get deleted comment - should still exist but have DeletedAt set
@@ -128,6 +128,7 @@ func TestCommentRepository_Integration(t *testing.T) {
 		require.NotNil(t, deleted)
 		assert.NotNil(t, deleted.DeletedAt)
 		assert.True(t, deleted.DeletedAt.After(time.Time{}))
+		assert.Equal(t, "deleted", deleted.Content)
 	})
 
 	t.Run("GetByPostID", func(t *testing.T) {
@@ -163,7 +164,7 @@ func TestCommentRepository_Integration(t *testing.T) {
 		created, err := commentRepo.Create(ctx, comment)
 		require.NoError(t, err)
 
-		err = commentRepo.Delete(ctx, created.ID)
+		err = commentRepo.SoftDelete(ctx, created.ID, "del")
 		require.NoError(t, err)
 
 		// Get comments - repository returns all comments (filtering is done at service layer)

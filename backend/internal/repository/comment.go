@@ -15,7 +15,9 @@ import (
 type CommentRepository interface {
 	Create(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
 	Update(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
-	Delete(ctx context.Context, id int) error
+	SoftDelete(ctx context.Context, id int, placeholder string) error
+	HardDelete(ctx context.Context, id int) error
+	HasReplies(ctx context.Context, id int) (bool, error)
 	GetByID(ctx context.Context, id int) (*domain.Comment, error)
 	GetByPostID(ctx context.Context, postID, userID int) ([]domain.Comment, error)
 }
@@ -103,32 +105,68 @@ func (r *commentRepo) Update(ctx context.Context, comment *domain.Comment) (*dom
 	return &updatedComment, nil
 }
 
-func (r *commentRepo) Delete(ctx context.Context, id int) error {
+func (r *commentRepo) SoftDelete(ctx context.Context, id int, placeholder string) error {
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
 		UPDATE comments
-		SET deleted_at = $1
-		WHERE id = $2 AND deleted_at IS NULL
+		SET deleted_at = $1, content = $2
+		WHERE id = $3 AND deleted_at IS NULL
 	`
 
-	result, err := db.Exec(ctx, query, time.Now(), id)
+	result, err := db.Exec(ctx, query, time.Now(), placeholder, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete comment: %w", err)
+		return fmt.Errorf("failed to soft delete comment: %w", err)
 	}
 
 	if result.RowsAffected() == 0 {
 		return fmt.Errorf("comment not found or already deleted")
 	}
 
-	// Get post_id to decrement count
+	// Decrement post comments count
 	var postID int
 	if err := db.QueryRow(ctx, "SELECT post_id FROM comments WHERE id = $1", id).Scan(&postID); err == nil {
-		// Decrement post comments count
 		_, _ = db.Exec(ctx, "UPDATE posts SET comments_count = GREATEST(comments_count - 1, 0) WHERE id = $1", postID)
 	}
 
 	return nil
+}
+
+func (r *commentRepo) HardDelete(ctx context.Context, id int) error {
+	db := GetQueryEngine(ctx, r.db)
+
+	// Get post_id to decrement count before deletion
+	var postID int
+	// We ignore error here, if comment doesn't exist, DELETE will affect 0 rows
+	_ = db.QueryRow(ctx, "SELECT post_id FROM comments WHERE id = $1", id).Scan(&postID)
+
+	query := `DELETE FROM comments WHERE id = $1`
+	result, err := db.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to hard delete comment: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("comment not found")
+	}
+
+	// Get post_id to decrement count
+	if postID != 0 {
+		_, _ = db.Exec(ctx, "UPDATE posts SET comments_count = GREATEST(comments_count - 1, 0) WHERE id = $1", postID)
+	}
+
+	return nil
+}
+
+func (r *commentRepo) HasReplies(ctx context.Context, id int) (bool, error) {
+	db := GetQueryEngine(ctx, r.db)
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM comments WHERE parent_id = $1)`
+	err := db.QueryRow(ctx, query, id).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check replies: %w", err)
+	}
+	return exists, nil
 }
 
 func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, error) {

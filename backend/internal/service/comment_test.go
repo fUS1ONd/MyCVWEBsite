@@ -33,9 +33,19 @@ func (m *MockCommentRepository) Update(ctx context.Context, comment *domain.Comm
 	return args.Get(0).(*domain.Comment), args.Error(1) //nolint:errcheck // mock method
 }
 
-func (m *MockCommentRepository) Delete(ctx context.Context, id int) error {
+func (m *MockCommentRepository) SoftDelete(ctx context.Context, id int, placeholder string) error {
+	args := m.Called(ctx, id, placeholder)
+	return args.Error(0)
+}
+
+func (m *MockCommentRepository) HardDelete(ctx context.Context, id int) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
+}
+
+func (m *MockCommentRepository) HasReplies(ctx context.Context, id int) (bool, error) {
+	args := m.Called(ctx, id)
+	return args.Bool(0), args.Error(1)
 }
 
 func (m *MockCommentRepository) GetByID(ctx context.Context, id int) (*domain.Comment, error) {
@@ -300,35 +310,56 @@ func TestCommentService_DeleteComment(t *testing.T) {
 		commentID   int
 		userID      int
 		isAdmin     bool
+		hasReplies  bool
 		setupMock   func(*MockCommentRepository)
 		wantErr     bool
 		errContains string
 	}{
 		{
-			name:      "success - author deletes own comment",
-			commentID: 1,
-			userID:    1,
-			isAdmin:   false,
+			name:       "success - author deletes own comment",
+			commentID:  1,
+			userID:     1,
+			isAdmin:    false,
+			hasReplies: false,
 			setupMock: func(m *MockCommentRepository) {
 				m.On("GetByID", mock.Anything, 1).Return(&domain.Comment{
 					ID:     1,
 					UserID: 1,
 				}, nil)
-				m.On("Delete", mock.Anything, 1).Return(nil)
+				m.On("HasReplies", mock.Anything, 1).Return(false, nil)
+				m.On("HardDelete", mock.Anything, 1).Return(nil)
 			},
 			wantErr: false,
 		},
 		{
-			name:      "success - admin deletes any comment",
-			commentID: 1,
-			userID:    999,
-			isAdmin:   true,
+			name:       "success - admin deletes any comment",
+			commentID:  1,
+			userID:     999,
+			isAdmin:    true,
+			hasReplies: false,
 			setupMock: func(m *MockCommentRepository) {
 				m.On("GetByID", mock.Anything, 1).Return(&domain.Comment{
 					ID:     1,
 					UserID: 1,
 				}, nil)
-				m.On("Delete", mock.Anything, 1).Return(nil)
+				m.On("HasReplies", mock.Anything, 1).Return(false, nil)
+				m.On("HardDelete", mock.Anything, 1).Return(nil)
+			},
+			wantErr: false,
+		},
+		{
+			name:       "success - soft delete when replies exist",
+			commentID:  1,
+			userID:     1,
+			isAdmin:    false,
+			hasReplies: true,
+			setupMock: func(m *MockCommentRepository) {
+				m.On("GetByID", mock.Anything, 1).Return(&domain.Comment{
+					ID:     1,
+					UserID: 1,
+				}, nil)
+				m.On("HasReplies", mock.Anything, 1).Return(true, nil)
+				m.On("SoftDelete", mock.Anything, 1, "Содержимое удалено.").Return(nil)
 			},
 			wantErr: false,
 		},
