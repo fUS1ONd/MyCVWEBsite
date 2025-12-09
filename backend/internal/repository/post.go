@@ -41,9 +41,9 @@ func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post,
 	}
 
 	query := `
-		INSERT INTO posts (title, slug, content, preview, author_id, published, published_at, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-		RETURNING id, title, slug, content, preview, author_id, published, published_at, created_at, updated_at
+		INSERT INTO posts (title, slug, content, preview, author_id, published, published_at, cover_image_id, read_time_minutes, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+		RETURNING id, title, slug, content, preview, author_id, published, published_at, cover_image_id, read_time_minutes, likes_count, comments_count, created_at, updated_at
 	`
 
 	err := db.QueryRow(ctx, query,
@@ -54,6 +54,8 @@ func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post,
 		post.AuthorID,
 		post.Published,
 		publishedAt,
+		post.CoverImageID,
+		post.ReadTimeMinutes,
 	).Scan(
 		&createdPost.ID,
 		&createdPost.Title,
@@ -63,6 +65,10 @@ func (r *postRepo) Create(ctx context.Context, post *domain.Post) (*domain.Post,
 		&createdPost.AuthorID,
 		&createdPost.Published,
 		&createdPost.PublishedAt,
+		&createdPost.CoverImageID,
+		&createdPost.ReadTimeMinutes,
+		&createdPost.LikesCount,
+		&createdPost.CommentsCount,
 		&createdPost.CreatedAt,
 		&createdPost.UpdatedAt,
 	)
@@ -88,9 +94,9 @@ func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post,
 
 	query := `
 		UPDATE posts
-		SET title = $1, slug = $2, content = $3, preview = $4, published = $5, published_at = $6, updated_at = NOW()
-		WHERE id = $7
-		RETURNING id, title, slug, content, preview, author_id, published, published_at, created_at, updated_at
+		SET title = $1, slug = $2, content = $3, preview = $4, published = $5, published_at = $6, cover_image_id = $7, read_time_minutes = $8, updated_at = NOW()
+		WHERE id = $9
+		RETURNING id, title, slug, content, preview, author_id, published, published_at, cover_image_id, read_time_minutes, likes_count, comments_count, created_at, updated_at
 	`
 
 	err := db.QueryRow(ctx, query,
@@ -100,6 +106,8 @@ func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post,
 		post.Preview,
 		post.Published,
 		publishedAt,
+		post.CoverImageID,
+		post.ReadTimeMinutes,
 		post.ID,
 	).Scan(
 		&updatedPost.ID,
@@ -110,6 +118,10 @@ func (r *postRepo) Update(ctx context.Context, post *domain.Post) (*domain.Post,
 		&updatedPost.AuthorID,
 		&updatedPost.Published,
 		&updatedPost.PublishedAt,
+		&updatedPost.CoverImageID,
+		&updatedPost.ReadTimeMinutes,
+		&updatedPost.LikesCount,
+		&updatedPost.CommentsCount,
 		&updatedPost.CreatedAt,
 		&updatedPost.UpdatedAt,
 	)
@@ -141,14 +153,23 @@ func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) { 
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
-		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at, p.created_at, p.updated_at,
-		       u.email
+		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
+		       p.cover_image_id, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
+		       u.email,
+		       m.id, m.filename, m.mime_type, m.size, m.storage_path, m.uploaded_at
 		FROM posts p
 		LEFT JOIN users u ON p.author_id = u.id
+		LEFT JOIN media_files m ON p.cover_image_id = m.id
 		WHERE p.id = $1
 	`
 
 	var authorEmail string
+	var coverImageID *int
+	var coverImage *domain.MediaFile
+	var mediaID, mediaSize *int64
+	var mediaFilename, mediaMimeType, mediaStoragePath *string
+	var mediaUploadedAt *time.Time
+
 	err := db.QueryRow(ctx, query, id).Scan(
 		&post.ID,
 		&post.Title,
@@ -158,10 +179,35 @@ func (r *postRepo) GetByID(ctx context.Context, id int) (*domain.Post, error) { 
 		&post.AuthorID,
 		&post.Published,
 		&post.PublishedAt,
+		&coverImageID,
+		&post.ReadTimeMinutes,
+		&post.LikesCount,
+		&post.CommentsCount,
 		&post.CreatedAt,
 		&post.UpdatedAt,
 		&authorEmail,
+		&mediaID,
+		&mediaFilename,
+		&mediaMimeType,
+		&mediaSize,
+		&mediaStoragePath,
+		&mediaUploadedAt,
 	)
+
+	if coverImageID != nil {
+		post.CoverImageID = coverImageID
+		if mediaID != nil {
+			coverImage = &domain.MediaFile{
+				ID:          int(*mediaID),
+				Filename:    *mediaFilename,
+				MimeType:    *mediaMimeType,
+				Size:        *mediaSize,
+				StoragePath: *mediaStoragePath,
+				UploadedAt:  *mediaUploadedAt,
+			}
+			post.CoverImage = coverImage
+		}
+	}
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil // Post not found
@@ -185,14 +231,23 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, er
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
-		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at, p.created_at, p.updated_at,
-		       u.email
+		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
+		       p.cover_image_id, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
+		       u.email,
+		       m.id, m.filename, m.mime_type, m.size, m.storage_path, m.uploaded_at
 		FROM posts p
 		LEFT JOIN users u ON p.author_id = u.id
+		LEFT JOIN media_files m ON p.cover_image_id = m.id
 		WHERE p.slug = $1
 	`
 
 	var authorEmail string
+	var coverImageID *int
+	var coverImage *domain.MediaFile
+	var mediaID, mediaSize *int64
+	var mediaFilename, mediaMimeType, mediaStoragePath *string
+	var mediaUploadedAt *time.Time
+
 	err := db.QueryRow(ctx, query, slug).Scan(
 		&post.ID,
 		&post.Title,
@@ -202,10 +257,35 @@ func (r *postRepo) GetBySlug(ctx context.Context, slug string) (*domain.Post, er
 		&post.AuthorID,
 		&post.Published,
 		&post.PublishedAt,
+		&coverImageID,
+		&post.ReadTimeMinutes,
+		&post.LikesCount,
+		&post.CommentsCount,
 		&post.CreatedAt,
 		&post.UpdatedAt,
 		&authorEmail,
+		&mediaID,
+		&mediaFilename,
+		&mediaMimeType,
+		&mediaSize,
+		&mediaStoragePath,
+		&mediaUploadedAt,
 	)
+
+	if coverImageID != nil {
+		post.CoverImageID = coverImageID
+		if mediaID != nil {
+			coverImage = &domain.MediaFile{
+				ID:          int(*mediaID),
+				Filename:    *mediaFilename,
+				MimeType:    *mediaMimeType,
+				Size:        *mediaSize,
+				StoragePath: *mediaStoragePath,
+				UploadedAt:  *mediaUploadedAt,
+			}
+			post.CoverImage = coverImage
+		}
+	}
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil // Post not found
@@ -243,10 +323,13 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 
 	// Build query with filters
 	baseQuery := `
-		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at, p.created_at, p.updated_at,
-		       u.email
+		SELECT p.id, p.title, p.slug, p.content, p.preview, p.author_id, p.published, p.published_at,
+		       p.cover_image_id, p.read_time_minutes, p.likes_count, p.comments_count, p.created_at, p.updated_at,
+		       u.email,
+		       m.id, m.filename, m.mime_type, m.size, m.storage_path, m.uploaded_at
 		FROM posts p
 		LEFT JOIN users u ON p.author_id = u.id
+		LEFT JOIN media_files m ON p.cover_image_id = m.id
 	`
 	countQuery := `SELECT COUNT(*) FROM posts p`
 
@@ -287,6 +370,10 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 	for rows.Next() {
 		var post domain.Post
 		var authorEmail string
+		var coverImageID *int
+		var mediaID, mediaSize *int64
+		var mediaFilename, mediaMimeType, mediaStoragePath *string
+		var mediaUploadedAt *time.Time
 
 		err := rows.Scan(
 			&post.ID,
@@ -297,9 +384,19 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 			&post.AuthorID,
 			&post.Published,
 			&post.PublishedAt,
+			&coverImageID,
+			&post.ReadTimeMinutes,
+			&post.LikesCount,
+			&post.CommentsCount,
 			&post.CreatedAt,
 			&post.UpdatedAt,
 			&authorEmail,
+			&mediaID,
+			&mediaFilename,
+			&mediaMimeType,
+			&mediaSize,
+			&mediaStoragePath,
+			&mediaUploadedAt,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan post: %w", err)
@@ -310,6 +407,21 @@ func (r *postRepo) List(ctx context.Context, req *domain.ListPostsRequest) ([]do
 			post.Author = &domain.User{
 				ID:    post.AuthorID,
 				Email: authorEmail,
+			}
+		}
+
+		// Set cover image if exists
+		if coverImageID != nil {
+			post.CoverImageID = coverImageID
+			if mediaID != nil {
+				post.CoverImage = &domain.MediaFile{
+					ID:          int(*mediaID),
+					Filename:    *mediaFilename,
+					MimeType:    *mediaMimeType,
+					Size:        *mediaSize,
+					StoragePath: *mediaStoragePath,
+					UploadedAt:  *mediaUploadedAt,
+				}
 			}
 		}
 

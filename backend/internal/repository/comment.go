@@ -36,7 +36,7 @@ func (r *commentRepo) Create(ctx context.Context, comment *domain.Comment) (*dom
 	query := `
 		INSERT INTO comments (post_id, user_id, content, parent_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())
-		RETURNING id, post_id, user_id, content, parent_id, created_at, updated_at, deleted_at
+		RETURNING id, post_id, user_id, content, parent_id, likes_count, created_at, updated_at, deleted_at
 	`
 
 	err := db.QueryRow(ctx, query,
@@ -50,6 +50,7 @@ func (r *commentRepo) Create(ctx context.Context, comment *domain.Comment) (*dom
 		&createdComment.UserID,
 		&createdComment.Content,
 		&createdComment.ParentID,
+		&createdComment.LikesCount,
 		&createdComment.CreatedAt,
 		&createdComment.UpdatedAt,
 		&createdComment.DeletedAt,
@@ -69,7 +70,7 @@ func (r *commentRepo) Update(ctx context.Context, comment *domain.Comment) (*dom
 		UPDATE comments
 		SET content = $1, updated_at = NOW()
 		WHERE id = $2 AND deleted_at IS NULL
-		RETURNING id, post_id, user_id, content, parent_id, created_at, updated_at, deleted_at
+		RETURNING id, post_id, user_id, content, parent_id, likes_count, created_at, updated_at, deleted_at
 	`
 
 	err := db.QueryRow(ctx, query,
@@ -81,6 +82,7 @@ func (r *commentRepo) Update(ctx context.Context, comment *domain.Comment) (*dom
 		&updatedComment.UserID,
 		&updatedComment.Content,
 		&updatedComment.ParentID,
+		&updatedComment.LikesCount,
 		&updatedComment.CreatedAt,
 		&updatedComment.UpdatedAt,
 		&updatedComment.DeletedAt,
@@ -121,7 +123,7 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 	db := GetQueryEngine(ctx, r.db)
 
 	query := `
-		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.created_at, c.updated_at, c.deleted_at,
+		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.likes_count, c.created_at, c.updated_at, c.deleted_at,
 		       u.email, u.role
 		FROM comments c
 		LEFT JOIN users u ON c.user_id = u.id
@@ -136,6 +138,7 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 		&comment.UserID,
 		&comment.Content,
 		&comment.ParentID,
+		&comment.LikesCount,
 		&comment.CreatedAt,
 		&comment.UpdatedAt,
 		&comment.DeletedAt,
@@ -164,7 +167,7 @@ func (r *commentRepo) GetByID(ctx context.Context, id int) (*domain.Comment, err
 func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Comment, error) {
 	db := GetQueryEngine(ctx, r.db)
 	query := `
-		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.created_at, c.updated_at, c.deleted_at,
+		SELECT c.id, c.post_id, c.user_id, c.content, c.parent_id, c.likes_count, c.created_at, c.updated_at, c.deleted_at,
 		       u.email, u.role
 		FROM comments c
 		LEFT JOIN users u ON c.user_id = u.id
@@ -193,6 +196,7 @@ func (r *commentRepo) GetByPostID(ctx context.Context, postID int) ([]domain.Com
 			&comment.UserID,
 			&comment.Content,
 			&comment.ParentID,
+			&comment.LikesCount,
 			&comment.CreatedAt,
 			&comment.UpdatedAt,
 			&comment.DeletedAt,

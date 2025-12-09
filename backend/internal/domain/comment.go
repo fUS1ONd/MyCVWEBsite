@@ -4,16 +4,18 @@ import "time"
 
 // Comment represents a comment on a post
 type Comment struct {
-	ID        int        `json:"id"`
-	PostID    int        `json:"post_id" validate:"required"`
-	UserID    int        `json:"user_id" validate:"required"`
-	Content   string     `json:"content" validate:"required,min=1,max=5000"`
-	ParentID  *int       `json:"parent_id,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
-	User      *User      `json:"user,omitempty"`
-	Replies   []Comment  `json:"replies,omitempty"`
+	ID         int        `json:"id"`
+	PostID     int        `json:"post_id" validate:"required"`
+	UserID     int        `json:"user_id" validate:"required"`
+	Content    string     `json:"content" validate:"required,min=1,max=5000"`
+	ParentID   *int       `json:"parent_id,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+	DeletedAt  *time.Time `json:"deleted_at,omitempty"`
+	LikesCount int        `json:"likes_count" db:"likes_count"`
+	IsLiked    bool       `json:"is_liked" db:"-"`
+	User       *User      `json:"user,omitempty"`
+	Replies    []Comment  `json:"replies,omitempty"`
 }
 
 // CreateCommentRequest represents the request to create a comment

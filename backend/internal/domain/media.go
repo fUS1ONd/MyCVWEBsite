@@ -2,13 +2,21 @@ package domain
 
 import "time"
 
-// MediaFile represents an uploaded media file
+// MediaFile represents an uploaded media file (image or video).
 type MediaFile struct {
-	ID         int       `json:"id"`
-	Filename   string    `json:"filename" validate:"required"`
-	Path       string    `json:"path" validate:"required"`
-	MimeType   string    `json:"mime_type" validate:"required"`
-	Size       int64     `json:"size" validate:"required,gt=0"`
-	UploaderID int       `json:"uploader_id" validate:"required"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID          int       `json:"id" db:"id"`
+	Filename    string    `json:"filename" db:"filename"`
+	MimeType    string    `json:"mime_type" db:"mime_type"`
+	Size        int64     `json:"size" db:"size"`
+	UploaderID  int       `json:"uploader_id" db:"uploader_id"`
+	StoragePath string    `json:"-" db:"storage_path"`
+	URL         string    `json:"url" db:"-"`
+	UploadedAt  time.Time `json:"uploaded_at" db:"uploaded_at"`
+}
+
+// UploadMediaRequest represents a request to upload a media file.
+type UploadMediaRequest struct {
+	Filename string
+	MimeType string
+	Size     int64
 }

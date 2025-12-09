@@ -4,18 +4,24 @@ import "time"
 
 // Post represents a blog post
 type Post struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title" validate:"required,min=3,max=255"`
-	Slug        string    `json:"slug" validate:"required,min=3,max=255"`
-	Content     string    `json:"content" validate:"required,min=10"`
-	Preview     string    `json:"preview"`
-	AuthorID    int       `json:"author_id" validate:"required"`
-	Published   bool      `json:"published"`
-	PublishedAt time.Time `json:"published_at,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Author      *User     `json:"author,omitempty"`
-	Media       []Media   `json:"media,omitempty"`
+	ID              int        `json:"id"`
+	Title           string     `json:"title" validate:"required,min=3,max=255"`
+	Slug            string     `json:"slug" validate:"required,min=3,max=255"`
+	Content         string     `json:"content" validate:"required,min=10"`
+	Preview         string     `json:"preview"`
+	AuthorID        int        `json:"author_id" validate:"required"`
+	Published       bool       `json:"published"`
+	PublishedAt     time.Time  `json:"published_at,omitempty"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+	CoverImageID    *int       `json:"cover_image_id,omitempty" db:"cover_image_id"`
+	ReadTimeMinutes int        `json:"read_time_minutes" db:"read_time_minutes"`
+	LikesCount      int        `json:"likes_count" db:"likes_count"`
+	CommentsCount   int        `json:"comments_count" db:"comments_count"`
+	IsLiked         bool       `json:"is_liked" db:"-"`
+	Author          *User      `json:"author,omitempty"`
+	CoverImage      *MediaFile `json:"cover_image,omitempty" db:"-"`
+	Media           []Media    `json:"media,omitempty"`
 }
 
 // Media represents media attached to a post
