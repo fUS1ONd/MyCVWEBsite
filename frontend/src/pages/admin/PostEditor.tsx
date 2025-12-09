@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import axiosInstance from '@/lib/axios';
-import { Post } from '@/lib/types';
+import { Post, MediaFile } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,11 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { ChevronLeft, Save } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { ChevronLeft, Save, X } from 'lucide-react';
+import { TipTapEditor } from '@/components/editor/TipTapEditor';
+import { ImageUpload } from '@/components/editor/ImageUpload';
 
 type PostFormData = {
   title: string;
@@ -23,6 +22,7 @@ type PostFormData = {
   content: string;
   preview: string;
   published: boolean;
+  cover_image_id?: number;
 };
 
 export default function PostEditor() {
@@ -30,7 +30,6 @@ export default function PostEditor() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isNew = id === 'new';
-  const [content, setContent] = useState('');
 
   const { data: post, isLoading } = useQuery({
     queryKey: ['admin', 'post', id],
@@ -54,6 +53,7 @@ export default function PostEditor() {
       content: '',
       preview: '',
       published: false,
+      cover_image_id: undefined,
     },
   });
 
@@ -64,11 +64,9 @@ export default function PostEditor() {
       setValue('content', post.content);
       setValue('preview', post.preview);
       setValue('published', post.published);
-      setContent(post.content);
+      setValue('cover_image_id', post.cover_image_id);
     }
   }, [post, setValue]);
-
-  const watchContent = watch('content');
 
   const mutation = useMutation({
     mutationFn: async (data: PostFormData) => {
@@ -94,6 +92,17 @@ export default function PostEditor() {
     }
     mutation.mutate(data);
   };
+
+  const handleCoverImageUpload = (url: string, mediaFile: MediaFile) => {
+    setValue('cover_image_id', mediaFile.id, { shouldDirty: true });
+  };
+
+  const removeCoverImage = () => {
+    setValue('cover_image_id', undefined, { shouldDirty: true });
+  };
+
+  const coverImageId = watch('cover_image_id');
+  const coverImage = post?.cover_image;
 
   if (isLoading && !isNew) {
     return (
@@ -155,6 +164,30 @@ export default function PostEditor() {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label>Cover Image</Label>
+              {coverImageId && coverImage ? (
+                <div className="relative">
+                  <img
+                    src={coverImage.url}
+                    alt="Cover"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={removeCoverImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <ImageUpload onUpload={handleCoverImageUpload} label="Upload Cover Image" />
+              )}
+            </div>
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="published"
@@ -168,35 +201,14 @@ export default function PostEditor() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Content (Markdown)</CardTitle>
+            <CardTitle>Content</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="write" className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="write">Write</TabsTrigger>
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-              </TabsList>
-              <TabsContent value="write" className="mt-4">
-                <Textarea
-                  {...register('content')}
-                  className="min-h-[500px] font-mono text-sm"
-                  placeholder="Write your post content in Markdown..."
-                  onChange={(e) => {
-                    register('content').onChange(e);
-                    setContent(e.target.value);
-                  }}
-                />
-              </TabsContent>
-              <TabsContent value="preview" className="mt-4">
-                <div className="min-h-[500px] border rounded-md p-6">
-                  <div className="prose prose-slate dark:prose-invert max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {watchContent || 'Nothing to preview yet...'}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+            <TipTapEditor
+              content={watch('content')}
+              onChange={(content) => setValue('content', content, { shouldDirty: true })}
+              placeholder="Write your post content..."
+            />
           </CardContent>
         </Card>
 

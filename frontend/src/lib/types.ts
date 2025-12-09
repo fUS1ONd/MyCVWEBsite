@@ -20,6 +20,16 @@ export interface Profile {
   };
 }
 
+export interface MediaFile {
+  id: number;
+  filename: string;
+  url: string;
+  mime_type: string;
+  size: number;
+  uploader_id: number;
+  created_at: string;
+}
+
 export interface Post {
   id: number;
   title: string;
@@ -31,6 +41,12 @@ export interface Post {
   updated_at: string;
   author_id: number;
   author?: User;
+  cover_image_id?: number;
+  cover_image?: MediaFile;
+  read_time_minutes: number;
+  likes_count: number;
+  comments_count: number;
+  is_liked: boolean;
 }
 
 export interface Comment {
@@ -43,6 +59,8 @@ export interface Comment {
   updated_at: string;
   user?: User;
   replies?: Comment[];
+  likes_count: number;
+  is_liked: boolean;
 }
 
 export interface PaginatedResponse<T> {
