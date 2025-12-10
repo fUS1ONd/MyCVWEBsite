@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import { usePageTracking } from '@/hooks/usePageTracking';
 
 // Pages
 import Home from './pages/Home';
@@ -30,6 +31,12 @@ const queryClient = new QueryClient({
   },
 });
 
+// Helper component to use hook inside Router context
+function PageTracker() {
+  usePageTracking();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -38,6 +45,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <PageTracker />
             <Routes>
               {/* Public Routes */}
               <Route
