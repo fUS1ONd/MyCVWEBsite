@@ -19,13 +19,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - CONFIG_PATH=config/local.yaml
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable
+      - CONFIG_PATH=${CONFIG_PATH:-config/local.yaml}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable}
       # OAuth URLs - can be overridden for different environments
-      - OAUTH_BASE_URL=http://localhost
-      - OAUTH_FRONTEND_URL=http://localhost
+      - OAUTH_BASE_URL=${OAUTH_BASE_URL:-http://localhost}
+      - OAUTH_FRONTEND_URL=${OAUTH_FRONTEND_URL:-http://localhost}
       # Cookie domain for session management
-      - COOKIE_DOMAIN=localhost
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-localhost}
     depends_on:
       db:
         condition: service_healthy
@@ -60,7 +60,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_BACKEND_URL=http://backend:8080
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL:-http://backend:8080}
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -74,9 +74,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=pwp_db
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-pwp_db}
     ports:
       - "5432:5432"
     volumes:
@@ -84,7 +84,7 @@ services:
     networks:
       - pwp-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -101,7 +101,7 @@ services:
         "-path",
         "/migrations",
         "-database",
-        "postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable",
+        "${DATABASE_URL:-postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable}",
         "up",
       ]
     networks:
