@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -8,6 +9,8 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { usePageTracking } from '@/hooks/usePageTracking';
+import { CookieConsent } from '@/components/CookieConsent';
+import { initializeGTM } from '@/lib/gtm';
 
 // Pages
 import Home from './pages/Home';
@@ -37,70 +40,77 @@ function PageTracker() {
   return null;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <PageTracker />
-            <Routes>
-              {/* Public Routes */}
-              <Route
-                path="/"
-                element={
-                  <Layout>
-                    <Home />
-                  </Layout>
-                }
-              />
+const App = () => {
+  useEffect(() => {
+    initializeGTM();
+  }, []);
 
-              {/* Protected Blog Routes */}
-              <Route element={<ProtectedRoute />}>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <CookieConsent />
+            <BrowserRouter>
+              <PageTracker />
+              <Routes>
+                {/* Public Routes */}
                 <Route
-                  path="/blog"
+                  path="/"
                   element={
                     <Layout>
-                      <Blog />
+                      <Home />
                     </Layout>
                   }
                 />
+
+                {/* Protected Blog Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route
+                    path="/blog"
+                    element={
+                      <Layout>
+                        <Blog />
+                      </Layout>
+                    }
+                  />
+                  <Route
+                    path="/blog/:slug"
+                    element={
+                      <Layout>
+                        <Article />
+                      </Layout>
+                    }
+                  />
+                </Route>
+
                 <Route
-                  path="/blog/:slug"
+                  path="/login"
                   element={
                     <Layout>
-                      <Article />
+                      <Login />
                     </Layout>
                   }
                 />
-              </Route>
 
-              <Route
-                path="/login"
-                element={
-                  <Layout>
-                    <Login />
-                  </Layout>
-                }
-              />
+                {/* Admin Routes */}
+                <Route path="/admin" element={<Dashboard />}>
+                  <Route index element={<ProfileEditor />} />
+                  <Route path="posts" element={<PostManager />} />
+                  <Route path="posts/:id" element={<PostEditor />} />
+                </Route>
 
-              {/* Admin Routes */}
-              <Route path="/admin" element={<Dashboard />}>
-                <Route index element={<ProfileEditor />} />
-                <Route path="posts" element={<PostManager />} />
-                <Route path="posts/:id" element={<PostEditor />} />
-              </Route>
-
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

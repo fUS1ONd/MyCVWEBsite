@@ -25,18 +25,21 @@ A personal website combining a professional portfolio (CV) and an AI-focused blo
 ## Tech Stack
 
 ### Backend
+
 - **Language:** Go 1.25
 - **Framework:** Chi v5
 - **Database:** PostgreSQL 15
 - **Auth:** OAuth 2.0/2.1
 
 ### Frontend
+
 - **Framework:** React 18, Vite
 - **Language:** TypeScript
 - **UI:** Tailwind CSS, shadcn/ui
 - **State:** TanStack Query
 
 ### Infrastructure
+
 - **Containerization:** Docker, Docker Compose
 - **Web Server:** Nginx
 - **CI/CD:** GitHub Actions
@@ -46,6 +49,7 @@ A personal website combining a professional portfolio (CV) and an AI-focused blo
 **Requirements:** Docker, Docker Compose, Make.
 
 1. **Initialization**
+
    ```bash
    make init
    ```
@@ -60,15 +64,15 @@ A personal website combining a professional portfolio (CV) and an AI-focused blo
 
 ## Makefile Commands
 
-| Command | Description |
-| ------- | ----------- |
-| `make init` | Initial setup |
-| `make dev` | Start development environment |
-| `make logs` | View logs |
-| `make stop` | Stop containers |
+| Command      | Description                                    |
+| ------------ | ---------------------------------------------- |
+| `make init`  | Initial setup                                  |
+| `make dev`   | Start development environment                  |
+| `make logs`  | View logs                                      |
+| `make stop`  | Stop containers                                |
 | `make reset` | Reset environment (delete containers and data) |
-| `make check` | Run linters |
-| `make test` | Run backend tests |
+| `make check` | Run linters                                    |
+| `make test`  | Run backend tests                              |
 
 ## Access Management
 
@@ -122,6 +126,7 @@ App available at: http://localhost
 Uses docker-compose.prod.yml. Optimized builds, Nginx with SSL (Let's Encrypt).
 
 Server Requirements:
+
 - Docker & Docker Compose installed
 - Ports 80 and 443 open
 - Domain DNS pointed to server IP (5.53.125.146 -> fus1ond.ru)
@@ -129,13 +134,16 @@ Server Requirements:
 Steps:
 
 1. Clone & Config:
+
    ```bash
    git clone <repo_url>
    cd curriculum_vitae
    cp .env.example .env
+   cp backend/config/production.yaml.example backend/config/production.yaml
    ```
 
 2. Edit .env for Production:
+
    ```ini
    ENV=production
    DOMAIN=fus1ond.ru
