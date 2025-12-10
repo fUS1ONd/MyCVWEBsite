@@ -110,6 +110,29 @@ func MustLoad() *Config {
 		log.Fatalf("cannot read config: %s", err)
 	}
 
+	if v := os.Getenv("GOOGLE_CLIENT_ID"); v != "" {
+		cfg.OAuth.Google.ClientID = v
+	}
+	if v := os.Getenv("GOOGLE_CLIENT_SECRET"); v != "" {
+		cfg.OAuth.Google.ClientSecret = v
+	}
+
+	// GitHub
+	if v := os.Getenv("GITHUB_CLIENT_ID"); v != "" {
+		cfg.OAuth.GitHub.ClientID = v
+	}
+	if v := os.Getenv("GITHUB_CLIENT_SECRET"); v != "" {
+		cfg.OAuth.GitHub.ClientSecret = v
+	}
+
+	// VK
+	if v := os.Getenv("VK_CLIENT_ID"); v != "" {
+		cfg.OAuth.VK.ClientID = v
+	}
+	if v := os.Getenv("VK_CLIENT_SECRET"); v != "" {
+		cfg.OAuth.VK.ClientSecret = v
+	}
+
 	// Apply defaults and validate configuration
 	if cfg.OAuth.FrontendURL == "" {
 		cfg.OAuth.FrontendURL = cfg.OAuth.BaseURL
