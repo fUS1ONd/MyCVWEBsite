@@ -1,17 +1,25 @@
 # Backend - Personal Web Platform
 
-Backend API для персонального веб-сайта (CV + AI Blog), написанный на Go.
+Go-based Backend API for the personal website (CV + AI Blog).
 
-## Технологии
+## Tech Stack
 
-- **Go** 1.25
-- **Chi** - HTTP роутер
-- **pgx/v5** - PostgreSQL драйвер
-- **goth** - OAuth аутентификация (VK, Google, GitHub)
-- **golang-migrate** - миграции БД
-- **slog** - структурированное логирование
+- **Core:** Go 1.25, Chi v5 (Router), Slog (Logging)
+- **Database:** PostgreSQL, pgx/v5 (Pool), golang-migrate
+- **Auth:** Goth (OAuth2: Google, GitHub, VK ID), Gorilla Sessions
+- **Config:** Cleanenv (YAML + Env support)
+- **Validation:** go-playground/validator
+- **Testing:** Testcontainers (Integration tests), Testify
 
-## Структура проекта
+## Features
+
+- **Profile:** Owner information management.
+- **Blog:** Posts management, slug generation, read time calculation.
+- **Social:** Nested comments, likes.
+- **Security:** Rate Limiting, RBAC, CORS.
+- **Admin:** Media upload, content management.
+
+## Project Structure
 
 ```
 backend/
@@ -32,33 +40,28 @@ backend/
 └── Dockerfile
 ```
 
-## Запуск
+## Running
 
-### Локально
+### Local
 
 ```bash
 # Из корня проекта
 make backend-run
-
-# Или напрямую
-cd backend && go run cmd/app/main.go
 ```
 
-### С Docker
+### With Docker
 
 ```bash
 # Из корня проекта
 make docker-up
 ```
 
-## Тестирование
+## Testing
 
 ```bash
 make backend-test
 ```
 
-## Конфигурация
+## Configuration
 
-Конфигурация загружается из файла YAML. Путь к файлу указывается в переменной окружения `CONFIG_PATH`.
-
-Пример конфигурации в `config/local.yaml` (для разработки).
+Configuration is loaded from YAML files specified via `CONFIG_PATH`.
