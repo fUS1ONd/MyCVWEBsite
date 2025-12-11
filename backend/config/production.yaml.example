@@ -1,6 +1,6 @@
 # Production Configuration Example
 # Copy this file to production.yaml and configure with your production values
-# Most values should be set via environment variables for security
+# All sensitive values should be set here (not via environment variables)
 
 env: "production"
 
@@ -10,8 +10,9 @@ http_server:
   idle_timeout: "60s"
 
 database:
-  # Set via DATABASE_URL environment variable
-  url: "${DATABASE_URL}"
+  # Production database URL with SSL required
+  # Format: postgres://user:password@host:port/database?sslmode=require
+  url: "postgres://postgres:your_production_password@db:5432/pwp_db?sslmode=require"
 
 profile:
   name: "Your Name"
@@ -20,16 +21,17 @@ profile:
   contacts:
     email: "your@email.com"
     github: "https://github.com/yourusername"
-    telegram: "https://t.me/fUS1ONd"
+    telegram: "https://t.me/yourusername"
 
 auth:
-  # CRITICAL: Set via SESSION_SECRET environment variable (min 32 random characters)
-  session_secret: "${SESSION_SECRET}"
+  # CRITICAL: Generate strong random secret (min 32 characters)
+  # Example: openssl rand -base64 48
+  session_secret: "your-strong-random-session-secret-min-32-characters-long"
   session_max_age: "168h" # 7 days
   cookie_name: "session_id"
-  # Set cookie domain for your production domain
-  # Examples: "example.com", ".example.com" (with dot for subdomains)
-  cookie_domain: "${COOKIE_DOMAIN}"
+  # Set to your production domain
+  # Examples: "fus1ond.ru" or ".fus1ond.ru" (with dot for subdomains)
+  cookie_domain: "fus1ond.ru"
   # MUST be true in production with HTTPS
   cookie_secure: true
   cookie_http_only: true
@@ -37,35 +39,28 @@ auth:
 
 oauth:
   # Your production domain (HTTPS required)
-  # Example: https://example.com
-  base_url: "${OAUTH_BASE_URL}"
-  # Usually same as base_url, can be different if frontend is separate
-  frontend_url: "${OAUTH_FRONTEND_URL}"
+  base_url: "https://fus1ond.ru"
+  frontend_url: "https://fus1ond.ru"
 
   google:
-    client_id: "${GOOGLE_CLIENT_ID}"
-    client_secret: "${GOOGLE_CLIENT_SECRET}"
+    client_id: "your-google-client-id.apps.googleusercontent.com"
+    client_secret: "your-google-client-secret"
     enabled: true
 
   github:
-    client_id: "${GITHUB_CLIENT_ID}"
-    client_secret: "${GITHUB_CLIENT_SECRET}"
+    client_id: "your-github-client-id"
+    client_secret: "your-github-client-secret"
     enabled: true
 
   vk:
-    client_id: "${VK_CLIENT_ID}"
-    client_secret: "${VK_CLIENT_SECRET}"
+    client_id: "your-vk-client-id"
+    client_secret: "your-vk-client-secret"
     enabled: true
-
-# Note: Media uploads are removed. Use external URLs for images.
-# media:
-#   (removed)
 
 cors:
   enabled: true
   allowed_origins:
-    # Your production domain
-    - "${OAUTH_BASE_URL}"
+    - "https://fus1ond.ru"
   allowed_methods:
     - "GET"
     - "POST"

@@ -31,12 +31,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
+      # All backend configuration is in backend/config/production.yaml
       - CONFIG_PATH=config/production.yaml
-      - DATABASE_URL=${DATABASE_URL}
-      - SESSION_SECRET=${SESSION_SECRET}
-      - COOKIE_DOMAIN=${COOKIE_DOMAIN}
-      - OAUTH_BASE_URL=${OAUTH_BASE_URL}
-      - OAUTH_FRONTEND_URL=${OAUTH_FRONTEND_URL}
     depends_on:
       db:
         condition: service_healthy
@@ -83,7 +79,14 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/migrations:/migrations
-    command: ["-path", "/migrations", "-database", "${DATABASE_URL}", "up"]
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable",
+        "up",
+      ]
     networks:
       - pwp-network
 

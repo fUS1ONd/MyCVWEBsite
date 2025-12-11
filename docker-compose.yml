@@ -19,13 +19,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - CONFIG_PATH=${CONFIG_PATH:-config/local.yaml}
-      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable}
-      # OAuth URLs - can be overridden for different environments
-      - OAUTH_BASE_URL=${OAUTH_BASE_URL:-http://localhost}
-      - OAUTH_FRONTEND_URL=${OAUTH_FRONTEND_URL:-http://localhost}
-      # Cookie domain for session management
-      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-localhost}
+      # All backend configuration is in backend/config/local.yaml
+      - CONFIG_PATH=config/local.yaml
     depends_on:
       db:
         condition: service_healthy
@@ -101,7 +96,7 @@ services:
         "-path",
         "/migrations",
         "-database",
-        "${DATABASE_URL:-postgres://postgres:postgres@db:5432/pwp_db?sslmode=disable}",
+        "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-pwp_db}?sslmode=disable",
         "up",
       ]
     networks:
