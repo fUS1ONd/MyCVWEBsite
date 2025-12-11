@@ -1,35 +1,35 @@
 .PHONY: init dev down logs lint test coverage
 
-# 1. Первая настройка: копирует .env (если надо), ставит git-hooks
+# 1. Initial setup: copies .env (if needed), installs git-hooks
 init:
 	cp -n backend/config/local.yaml.example backend/config/local.yaml || true
 	pre-commit install
 
-# 2. Главная команда: Запуск всего в фоне + пересборка если надо
+# 2. Main command: Start everything in background + rebuild if needed
 dev:
 	docker compose up -d --build
 
-# 3. Полная остановка + удаление томов (сброс базы в ноль - это проще, чем migrate down)
+# 3. Full stop + remove volumes (database reset - easier than migrate down)
 reset:
 	docker compose down -v
 
-# 4. Просто остановка
+# 4. Just stop
 stop:
 	docker compose down
 
-# 5. Просмотр логов
+# 5. View logs
 logs:
 	docker compose logs -f
 
-# 6. Проверка качества (запуск локальных тулзов)
+# 6. Quality check (run local tools)
 check:
 	pre-commit run --all-files
 
-# Запуск всех тестов
+# Run all tests
 test:
 	cd backend && go test -v -tags=integration ./...
 
-# Генерация отчета о покрытии
+# Generate coverage report
 coverage:
 	cd backend && go test -tags=integration -coverprofile=coverage.out ./...
 	cd backend && go tool cover -html=coverage.out -o coverage.html
