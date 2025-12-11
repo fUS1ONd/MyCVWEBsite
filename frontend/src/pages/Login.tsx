@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Github } from 'lucide-react';
@@ -43,7 +44,11 @@ export default function Login() {
           </Button>
 
           <p className="text-xs text-center text-muted-foreground mt-6">
-            By continuing, you agree to our Terms of Service and Privacy Policy
+            By registering, you agree to{' '}
+            <Link to="/consent" className="underline hover:text-primary">
+              the processing of your personal data
+            </Link>
+            .
           </p>
         </CardContent>
       </Card>

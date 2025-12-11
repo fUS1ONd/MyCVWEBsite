@@ -17,6 +17,7 @@ import Home from './pages/Home';
 import Blog from './pages/Blog';
 import Article from './pages/Article';
 import Login from './pages/Login';
+import Consent from './pages/Consent';
 import NotFound from './pages/NotFound';
 
 // Admin Pages
@@ -91,6 +92,15 @@ const App = () => {
                   element={
                     <Layout>
                       <Login />
+                    </Layout>
+                  }
+                />
+
+                <Route
+                  path="/consent"
+                  element={
+                    <Layout>
+                      <Consent />
                     </Layout>
                   }
                 />
