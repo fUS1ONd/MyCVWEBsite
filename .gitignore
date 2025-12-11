@@ -22,6 +22,8 @@ node_modules/
 
 # Environment variables
 .env
+backend/config/local.yaml
+backend/config/production.yaml
 
 # IDEs
 .idea/

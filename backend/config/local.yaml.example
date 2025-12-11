@@ -1,0 +1,70 @@
+env: "local"
+
+http_server:
+  address: "0.0.0.0:8080"
+  timeout: "4s"
+  idle_timeout: "60s"
+
+database:
+  url: "postgres://postgres:your_password@db:5432/pwp_db?sslmode=disable"
+
+profile:
+  name: "Your Name"
+  description: "Your professional description"
+  skills: ["Skill1", "Skill2", "Skill3"]
+  contacts:
+    email: "your.email@example.com"
+    github: "https://github.com/yourusername"
+    telegram: "https://t.me/yourusername"
+
+auth:
+  session_secret: "your-secret-key-min-32-characters-long"
+  session_max_age: "168h" # 7 days
+  cookie_name: "session_id"
+  cookie_domain: "localhost" # Explicit domain for cookie
+  cookie_secure: false # Set to true in production with HTTPS
+  cookie_http_only: true
+  cookie_same_site: "lax"
+
+oauth:
+  base_url: "http://localhost"
+  frontend_url: "http://localhost"
+  google:
+    client_id: "your-google-client-id.apps.googleusercontent.com"
+    client_secret: "your-google-client-secret"
+    enabled: false # Set to true when you have credentials
+  github:
+    client_id: "your-github-client-id"
+    client_secret: "your-github-client-secret"
+    enabled: false # Set to true when you have credentials
+  vk:
+    client_id: "your-vk-client-id"
+    client_secret: "your-vk-client-secret"
+    enabled: true # Set to true when you have credentials
+
+cors:
+  enabled: true
+  allowed_origins:
+    - "http://localhost" # Browser's actual origin through Nginx
+    - "http://localhost:3000"
+    - "http://localhost:5173" # Vite default port
+  allowed_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allowed_headers:
+    - "Accept"
+    - "Authorization"
+    - "Content-Type"
+    - "X-CSRF-Token"
+  exposed_headers:
+    - "Link"
+  allowed_credentials: true
+  max_age: 300
+
+rate_limit:
+  enabled: true
+  requests_limit: 100 # requests per window
+  window_seconds: 60 # 1 minute window
