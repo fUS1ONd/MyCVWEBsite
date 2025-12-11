@@ -1,6 +1,6 @@
 # Backend - Personal Web Platform
 
-Go-based Backend API for the personal website (CV + AI Blog).
+Go-based Backend API.
 
 ## Tech Stack
 
@@ -39,29 +39,3 @@ backend/
 ├── go.mod
 └── Dockerfile
 ```
-
-## Running
-
-### Local
-
-```bash
-# Из корня проекта
-make backend-run
-```
-
-### With Docker
-
-```bash
-# Из корня проекта
-make docker-up
-```
-
-## Testing
-
-```bash
-make backend-test
-```
-
-## Configuration
-
-Configuration is loaded from YAML files specified via `CONFIG_PATH`.
