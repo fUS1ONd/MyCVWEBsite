@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import axiosInstance from '@/lib/axios';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { CommentForm } from './CommentForm';
 import { format } from 'date-fns';
 import { MessageSquare, Trash2, Heart } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -13,18 +12,10 @@ import { toast } from '@/hooks/use-toast';
 interface CommentItemProps {
   comment: Comment;
   postSlug: string;
-  replyingTo: number | null;
-  setReplyingTo: (id: number | null) => void;
-  depth: number;
+  onReply: (authorName: string) => void;
 }
 
-export function CommentItem({
-  comment,
-  postSlug,
-  replyingTo,
-  setReplyingTo,
-  depth,
-}: CommentItemProps) {
+export function CommentItem({ comment, postSlug, onReply }: CommentItemProps) {
   const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -73,12 +64,11 @@ export function CommentItem({
   };
 
   const isAuthor = user?.id === comment.user_id;
-  const canReply = isAuthenticated && depth < 10; // Limit nesting depth
 
   return (
     <div className="space-y-3">
       <div className="flex gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-        <Avatar className={depth === 0 ? 'h-10 w-10' : 'h-8 w-8'}>
+        <Avatar className="h-10 w-10">
           <AvatarImage src={comment.user?.avatar_url} />
           <AvatarFallback>{comment.user?.name.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
         </Avatar>
@@ -91,7 +81,7 @@ export function CommentItem({
             </span>
           </div>
 
-          <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+          <p className="text-sm text-foreground whitespace-pre-wrap break-words [overflow-wrap:anywhere] leading-relaxed">
             {comment.content}
           </p>
 
@@ -111,12 +101,12 @@ export function CommentItem({
               </span>
             </Button>
 
-            {canReply && (
+            {isAuthenticated && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2 text-xs"
-                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                onClick={() => onReply(comment.user?.name || 'User')}
               >
                 <MessageSquare className="h-3 w-3 mr-1" />
                 Reply
@@ -138,17 +128,6 @@ export function CommentItem({
           </div>
         </div>
       </div>
-
-      {replyingTo === comment.id && (
-        <div className="ml-11">
-          <CommentForm
-            postSlug={postSlug}
-            parentId={comment.id}
-            onSuccess={() => setReplyingTo(null)}
-            onCancel={() => setReplyingTo(null)}
-          />
-        </div>
-      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Comment } from '@/lib/types';
-import { CommentThread } from './CommentThread';
+import { CommentItem } from './CommentItem';
 import { CommentForm } from './CommentForm';
 import { CommentSort, SortOption } from './CommentSort';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,7 +17,7 @@ interface CommentSectionProps {
 
 export function CommentSection({ postSlug, comments, isLoading }: CommentSectionProps) {
   const { isAuthenticated } = useAuth();
-  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [commentContent, setCommentContent] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>(() => {
     const saved = localStorage.getItem('commentSort');
     return (saved as SortOption) || 'newest';
@@ -27,11 +27,8 @@ export function CommentSection({ postSlug, comments, isLoading }: CommentSection
     localStorage.setItem('commentSort', sortOption);
   }, [sortOption]);
 
-  // Organize comments into threads
-  const topLevelComments = comments.filter((c) => !c.parent_id);
-
   // Sort comments
-  const sortedComments = [...topLevelComments].sort((a, b) => {
+  const sortedComments = [...comments].sort((a, b) => {
     switch (sortOption) {
       case 'newest':
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -43,6 +40,18 @@ export function CommentSection({ postSlug, comments, isLoading }: CommentSection
         return 0;
     }
   });
+
+  const handleReply = (authorName: string) => {
+    const mention = `@${authorName}, `;
+    setCommentContent((prev) => (prev.startsWith(mention) ? prev : mention + prev));
+
+    // Focus the textarea
+    const textarea = document.getElementById('main-comment-textarea');
+    if (textarea) {
+      textarea.focus();
+      textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -67,9 +76,7 @@ export function CommentSection({ postSlug, comments, isLoading }: CommentSection
             <MessageSquare className="h-5 w-5" />
             Comments ({comments.length})
           </CardTitle>
-          {topLevelComments.length > 0 && (
-            <CommentSort value={sortOption} onChange={setSortOption} />
-          )}
+          {comments.length > 0 && <CommentSort value={sortOption} onChange={setSortOption} />}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -80,7 +87,7 @@ export function CommentSection({ postSlug, comments, isLoading }: CommentSection
         )}
 
         {isAuthenticated && (
-          <CommentForm postSlug={postSlug} onSuccess={() => setReplyingTo(null)} />
+          <CommentForm postSlug={postSlug} value={commentContent} onChange={setCommentContent} />
         )}
 
         <div className="space-y-6">
@@ -90,13 +97,11 @@ export function CommentSection({ postSlug, comments, isLoading }: CommentSection
             </p>
           ) : (
             sortedComments.map((comment) => (
-              <CommentThread
+              <CommentItem
                 key={comment.id}
                 comment={comment}
                 postSlug={postSlug}
-                allComments={comments}
-                replyingTo={replyingTo}
-                setReplyingTo={setReplyingTo}
+                onReply={handleReply}
               />
             ))
           )}

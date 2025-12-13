@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axios';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,22 +6,21 @@ import { toast } from '@/hooks/use-toast';
 
 interface CommentFormProps {
   postSlug: string;
-  parentId?: number;
+  value: string;
+  onChange: (value: string) => void;
   onSuccess?: () => void;
-  onCancel?: () => void;
 }
 
-export function CommentForm({ postSlug, parentId, onSuccess, onCancel }: CommentFormProps) {
-  const [content, setContent] = useState('');
+export function CommentForm({ postSlug, value, onChange, onSuccess }: CommentFormProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (data: { content: string; parent_id?: number }) => {
+    mutationFn: async (data: { content: string }) => {
       await axiosInstance.post(`/api/v1/posts/${postSlug}/comments`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments', postSlug] });
-      setContent('');
+      onChange('');
       toast({ title: 'Comment posted' });
       onSuccess?.();
     },
@@ -33,31 +31,24 @@ export function CommentForm({ postSlug, parentId, onSuccess, onCancel }: Comment
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!value.trim()) return;
 
-    mutation.mutate({
-      content: content.trim(),
-      parent_id: parentId,
-    });
+    mutation.mutate({ content: value.trim() });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <Textarea
-        placeholder={parentId ? 'Write a reply...' : 'Write a comment...'}
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
+        id="main-comment-textarea"
+        placeholder="Write a comment..."
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         className="min-h-[80px]"
       />
       <div className="flex gap-2">
-        <Button type="submit" disabled={!content.trim() || mutation.isPending} size="sm">
-          {mutation.isPending ? 'Posting...' : parentId ? 'Reply' : 'Comment'}
+        <Button type="submit" disabled={!value.trim() || mutation.isPending} size="sm">
+          {mutation.isPending ? 'Posting...' : 'Comment'}
         </Button>
-        {onCancel && (
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
       </div>
     </form>
   );
