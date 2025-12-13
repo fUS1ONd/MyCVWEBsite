@@ -60,10 +60,12 @@ export default function Home() {
         </Avatar>
 
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">{profile.name}</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">{profile.name}</h1>
         </div>
 
-        <p className="text-lg text-muted-foreground max-w-2xl">{profile.description}</p>
+        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl">
+          {profile.description}
+        </p>
 
         {/* Social Links */}
         <div className="flex flex-wrap justify-center gap-2">
@@ -97,7 +99,7 @@ export default function Home() {
       {/* Activity Section */}
       <Card>
         <CardContent className="pt-6">
-          <h2 className="text-2xl font-semibold mb-4">Деятельность</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">Деятельность</h2>
           <div className="prose prose-slate dark:prose-invert max-w-none">
             <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-muted-foreground">
               {profile.activity}

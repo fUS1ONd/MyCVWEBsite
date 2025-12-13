@@ -16,7 +16,7 @@ export default function Login() {
     <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-16">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-bold">Welcome back</CardTitle>
+          <CardTitle className="text-2xl sm:text-3xl font-bold">Welcome back</CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

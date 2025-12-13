@@ -126,7 +126,7 @@ export default function PostEditor() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               {isNew ? 'New Post' : 'Edit Post'}
             </h1>
           </div>

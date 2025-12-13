@@ -90,7 +90,7 @@ export function PostCard({ post }: PostCardProps) {
       <div className="p-6 space-y-4">
         {/* Title */}
         <Link to={`/blog/${post.slug}`}>
-          <h2 className="text-2xl font-bold hover:text-primary transition-colors line-clamp-2">
+          <h2 className="text-xl sm:text-2xl font-bold hover:text-primary transition-colors line-clamp-2">
             {post.title}
           </h2>
         </Link>

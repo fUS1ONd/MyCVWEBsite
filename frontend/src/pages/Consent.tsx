@@ -5,7 +5,7 @@ export default function Consent() {
     <div className="container max-w-3xl py-16">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl text-center font-bold">
+          <CardTitle className="text-xl sm:text-2xl text-center font-bold">
             CONSENT TO THE PROCESSING OF PERSONAL DATA
           </CardTitle>
         </CardHeader>

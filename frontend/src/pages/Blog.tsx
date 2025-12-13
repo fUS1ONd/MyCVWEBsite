@@ -74,8 +74,10 @@ export default function Blog() {
   return (
     <div className="container max-w-4xl py-16 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight">Blog</h1>
-        <p className="text-lg text-muted-foreground">Thoughts, stories and ideas about AI</p>
+        <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">Blog</h1>
+        <p className="text-base sm:text-lg text-muted-foreground">
+          Thoughts, stories and ideas about AI
+        </p>
       </div>
 
       <div className="space-y-6">

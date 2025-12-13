@@ -168,7 +168,7 @@ export default function Article() {
         )}
 
         <header className="space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight">{post.title}</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">{post.title}</h1>
 
           {/* Author Info */}
           <div className="flex items-center gap-3">
@@ -217,7 +217,7 @@ export default function Article() {
         <Card>
           <CardContent className="pt-6">
             <div
-              className="prose prose-slate dark:prose-invert max-w-none"
+              className="prose prose-sm sm:prose-base prose-slate dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
           </CardContent>
