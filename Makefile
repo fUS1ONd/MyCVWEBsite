@@ -1,4 +1,4 @@
-.PHONY: init dev down logs lint test coverage
+.PHONY: init dev reset stop logs check test coverage
 
 # 1. Initial setup: copies .env (if needed), installs git-hooks
 init:

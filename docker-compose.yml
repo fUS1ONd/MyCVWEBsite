@@ -50,8 +50,9 @@ services:
       start_period: 30s
 
   frontend:
-    image: node:20-alpine
-    working_dir: /app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
     environment:
@@ -59,7 +60,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: sh -c "npm install --legacy-peer-deps && npm run dev -- --host"
     depends_on:
       backend:
         condition: service_healthy
