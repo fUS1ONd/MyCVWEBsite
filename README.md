@@ -55,7 +55,7 @@ Prerequisites: Docker, Docker Compose, Make.
    ```bash
    make init
    ```
-   This sets up the necessary configuration files.
+   This sets up the necessary configuration files (`.env` and `backend/config/local.yaml`). **Important:** Open `backend/config/local.yaml` to configure your local credentials (OAuth client IDs/secrets, session keys, etc.).
 
 2. **Start development environment:**
 
@@ -75,7 +75,7 @@ To deploy in production mode with Nginx and SSL support:
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
-Ensure you have configured `backend/config/production.yaml` and set the necessary environment variables in `.env` (domain, database credentials, etc.).
+Ensure you have configured backend/config/production.yaml (for application secrets) and set the necessary environment variables in .env (for infrastructure settings like domain and initial database credentials).
 
 ## Useful Commands
 

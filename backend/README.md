@@ -19,6 +19,16 @@ Go-based Backend API.
 - **Security:** Rate Limiting, RBAC, CORS.
 - **Admin:** Media upload, content management.
 
+## Configuration
+
+The backend is configured via a YAML file specified by the CONFIG_PATH environment variable (defaults to config/local.yaml).
+
+1. File Config: Main configuration resides in config/local.yaml (for dev) or config/production.yaml (for prod).
+2. Credentials: Sensitive data (DB URL, OAuth secrets, Session keys) should be placed in these YAML files.
+3. Env Overrides: Critical values can be overridden by environment variables defined in the config struct (e.g., DATABASE_URL, SESSION_SECRET, GOOGLE_CLIENT_ID).
+
+See config/README.md for detailed instructions.
+
 ## Project Structure
 
 ```
