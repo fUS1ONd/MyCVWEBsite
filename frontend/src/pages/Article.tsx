@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { ChevronLeft, Heart, Share2, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { SmartImage } from '@/components/ui/smart-image';
 
 export default function Article() {
   const { toast } = useToast();
@@ -159,10 +160,11 @@ export default function Article() {
       <article className="space-y-6">
         {/* Cover Image */}
         {post.cover_image && (
-          <img
+          <SmartImage
             src={post.cover_image}
             alt={post.title}
-            className="w-full h-[400px] object-cover rounded-lg"
+            containerClassName="rounded-lg max-h-[60vh]"
+            className="rounded-lg"
             loading="lazy"
           />
         )}

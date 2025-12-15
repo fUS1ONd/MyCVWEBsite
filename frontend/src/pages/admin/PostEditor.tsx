@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
 import { ChevronLeft, Save, X } from 'lucide-react';
 import { TipTapEditor } from '@/components/editor/TipTapEditor';
+import { SmartImage } from '@/components/ui/smart-image';
 
 type PostFormData = {
   title: string;
@@ -173,10 +174,11 @@ export default function PostEditor() {
                 </div>
                 {coverImage && (
                   <div className="relative mt-2">
-                    <img
+                    <SmartImage
                       src={coverImage}
                       alt="Cover"
-                      className="w-full h-48 object-cover rounded-lg"
+                      containerClassName="rounded-lg"
+                      className="rounded-lg"
                     />
                     <Button
                       type="button"

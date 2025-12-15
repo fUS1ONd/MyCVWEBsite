@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { Heart, MessageSquare, Share2, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { SmartImage } from '@/components/ui/smart-image';
 
 interface PostCardProps {
   post: Post;
@@ -78,12 +79,7 @@ export function PostCard({ post }: PostCardProps) {
       {/* Cover Image */}
       {post.cover_image && (
         <Link to={`/blog/${post.slug}`} className="block">
-          <img
-            src={post.cover_image}
-            alt={post.title}
-            className="w-full h-48 object-cover"
-            loading="lazy"
-          />
+          <SmartImage src={post.cover_image} alt={post.title} loading="lazy" />
         </Link>
       )}
 
