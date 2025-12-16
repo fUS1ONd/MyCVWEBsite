@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TipTapEditor } from '@/components/editor/TipTapEditor';
 import { Upload, X } from 'lucide-react';
 
 export default function ProfileEditor() {
@@ -125,12 +126,10 @@ export default function ProfileEditor() {
 
             <div className="space-y-2">
               <Label htmlFor="activity">Деятельность *</Label>
-              <Textarea
-                id="activity"
-                {...register('activity')}
+              <TipTapEditor
+                content={watch('activity')}
+                onChange={(content) => setValue('activity', content, { shouldDirty: true })}
                 placeholder="Расскажите о своей текущей деятельности и опыте"
-                className="min-h-[120px]"
-                required
               />
             </div>
 

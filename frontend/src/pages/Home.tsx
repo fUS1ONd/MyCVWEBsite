@@ -106,9 +106,10 @@ export default function Home() {
         <CardContent className="pt-6">
           <h2 className="text-xl sm:text-2xl font-semibold mb-4">Деятельность</h2>
           <div className="prose prose-slate dark:prose-invert max-w-none">
-            <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-muted-foreground">
-              {profile.activity}
-            </p>
+            <div
+              className="text-muted-foreground"
+              dangerouslySetInnerHTML={{ __html: profile.activity }}
+            />
           </div>
         </CardContent>
       </Card>

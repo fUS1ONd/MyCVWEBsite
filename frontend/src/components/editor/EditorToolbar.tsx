@@ -88,6 +88,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       variant={isActive ? 'default' : 'ghost'}
       size="sm"
       onClick={onClick}
+      onMouseDown={(e) => e.preventDefault()}
       disabled={disabled}
       title={title}
       className="h-8 w-8 p-0"
@@ -235,6 +236,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
             size="sm"
             title="Add Link"
             className="h-8 w-8 p-0"
+            onMouseDown={(e) => e.preventDefault()}
           >
             <LinkIcon className="h-4 w-4" />
           </Button>
@@ -275,7 +277,14 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       {/* Image */}
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
         <DialogTrigger asChild>
-          <Button type="button" variant="ghost" size="sm" title="Add Image" className="h-8 w-8 p-0">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            title="Add Image"
+            className="h-8 w-8 p-0"
+            onMouseDown={(e) => e.preventDefault()}
+          >
             <ImagePlus className="h-4 w-4" />
           </Button>
         </DialogTrigger>
@@ -318,7 +327,14 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       {/* Video (YouTube) */}
       <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
         <DialogTrigger asChild>
-          <Button type="button" variant="ghost" size="sm" title="Add Video" className="h-8 w-8 p-0">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            title="Add Video"
+            className="h-8 w-8 p-0"
+            onMouseDown={(e) => e.preventDefault()}
+          >
             <Youtube className="h-4 w-4" />
           </Button>
         </DialogTrigger>
