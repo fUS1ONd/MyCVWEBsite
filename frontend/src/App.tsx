@@ -10,6 +10,8 @@ import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { usePageTracking } from '@/hooks/usePageTracking';
 import { CookieConsent } from '@/components/CookieConsent';
+import { ImageViewerProvider } from '@/contexts/ImageViewerContext';
+import { ImageViewer } from '@/components/ImageViewer';
 import { initializeGTM } from '@/lib/gtm';
 
 // Pages
@@ -48,77 +50,80 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <CookieConsent />
-            <BrowserRouter>
-              <PageTracker />
-              <Routes>
-                {/* Public Routes */}
-                <Route
-                  path="/"
-                  element={
-                    <Layout>
-                      <Home />
-                    </Layout>
-                  }
-                />
-
-                {/* Protected Blog Routes */}
-                <Route element={<ProtectedRoute />}>
+      <ImageViewerProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <CookieConsent />
+              <ImageViewer />
+              <BrowserRouter>
+                <PageTracker />
+                <Routes>
+                  {/* Public Routes */}
                   <Route
-                    path="/blog"
+                    path="/"
                     element={
                       <Layout>
-                        <Blog />
+                        <Home />
                       </Layout>
                     }
                   />
+
+                  {/* Protected Blog Routes */}
+                  <Route element={<ProtectedRoute />}>
+                    <Route
+                      path="/blog"
+                      element={
+                        <Layout>
+                          <Blog />
+                        </Layout>
+                      }
+                    />
+                    <Route
+                      path="/blog/:slug"
+                      element={
+                        <Layout>
+                          <Article />
+                        </Layout>
+                      }
+                    />
+                  </Route>
+
                   <Route
-                    path="/blog/:slug"
+                    path="/login"
                     element={
                       <Layout>
-                        <Article />
+                        <Login />
                       </Layout>
                     }
                   />
-                </Route>
 
-                <Route
-                  path="/login"
-                  element={
-                    <Layout>
-                      <Login />
-                    </Layout>
-                  }
-                />
+                  <Route
+                    path="/consent"
+                    element={
+                      <Layout>
+                        <Consent />
+                      </Layout>
+                    }
+                  />
 
-                <Route
-                  path="/consent"
-                  element={
-                    <Layout>
-                      <Consent />
-                    </Layout>
-                  }
-                />
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={<Dashboard />}>
+                    <Route index element={<ProfileEditor />} />
+                    <Route path="posts" element={<PostManager />} />
+                    <Route path="posts/:id" element={<PostEditor />} />
+                  </Route>
 
-                {/* Admin Routes */}
-                <Route path="/admin" element={<Dashboard />}>
-                  <Route index element={<ProfileEditor />} />
-                  <Route path="posts" element={<PostManager />} />
-                  <Route path="posts/:id" element={<PostEditor />} />
-                </Route>
-
-                {/* Catch-all */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
+                  {/* Catch-all */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </ImageViewerProvider>
     </QueryClientProvider>
   );
 };

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useImageViewer } from '@/contexts/ImageViewerContext';
 
 interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   aspectRatio?: string;
   containerClassName?: string;
+  zoomable?: boolean;
 }
 
 export function SmartImage({
@@ -13,9 +15,11 @@ export function SmartImage({
   className,
   containerClassName,
   aspectRatio = 'aspect-video',
+  zoomable = false,
   ...props
 }: SmartImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { openImage } = useImageViewer();
 
   if (!src) return null;
 
@@ -42,8 +46,12 @@ export function SmartImage({
         className={cn(
           'relative w-full h-full object-contain z-10 transition-opacity duration-300',
           isLoaded ? 'opacity-100' : 'opacity-0',
+          zoomable && 'cursor-pointer hover:opacity-95 transition-opacity',
           className
         )}
+        onClick={() => {
+          if (zoomable && src) openImage(src);
+        }}
         {...props}
       />
     </div>

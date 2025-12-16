@@ -13,12 +13,14 @@ import { ChevronLeft, Heart, Share2, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { SmartImage } from '@/components/ui/smart-image';
+import { useImageViewer } from '@/contexts/ImageViewerContext';
 
 export default function Article() {
   const { toast } = useToast();
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { openImage } = useImageViewer();
 
   const {
     data: post,
@@ -120,6 +122,14 @@ export default function Article() {
     }
   }, [commentsError, toast]);
 
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'IMG') {
+      const img = target as HTMLImageElement;
+      if (img.src) openImage(img.src);
+    }
+  };
+
   if (postLoading) {
     return (
       <div className="container max-w-4xl py-16 space-y-8">
@@ -166,6 +176,7 @@ export default function Article() {
             containerClassName="rounded-lg max-h-[60vh]"
             className="rounded-lg"
             loading="lazy"
+            zoomable
           />
         )}
 
@@ -221,6 +232,7 @@ export default function Article() {
             <div
               className="prose prose-sm sm:prose-base prose-slate dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: post.content }}
+              onClick={handleContentClick}
             />
           </CardContent>
         </Card>

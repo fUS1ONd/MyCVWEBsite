@@ -9,9 +9,11 @@ import { Github, Mail } from 'lucide-react';
 import { FaTelegram } from 'react-icons/fa';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { useImageViewer } from '@/contexts/ImageViewerContext';
 
 export default function Home() {
   const { toast } = useToast();
+  const { openImage } = useImageViewer();
   const {
     data: profile,
     isLoading,
@@ -54,7 +56,10 @@ export default function Home() {
     <div className="container max-w-4xl py-16 space-y-12">
       {/* Hero Section */}
       <div className="flex flex-col items-center text-center space-y-6">
-        <Avatar className="h-32 w-32 border-2 border-border">
+        <Avatar
+          className="h-32 w-32 border-2 border-border cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => profile.photo_url && openImage(profile.photo_url)}
+        >
           <AvatarImage src={profile.photo_url} alt={profile.name} />
           <AvatarFallback className="text-3xl">{profile.name.charAt(0)}</AvatarFallback>
         </Avatar>
